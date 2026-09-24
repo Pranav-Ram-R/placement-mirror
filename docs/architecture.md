@@ -5,7 +5,7 @@
 | Video capture 640x480 at 30 fps | Browser getUserMedia, canvas resize, raw RGB over WebSocket | Oryon CPU | I/O. Letterbox for the detector happens in the browser canvas |
 | Face detection | mediapipe_face detector | Hexagon NPU | Rerun only when landmark confidence drops. Track from previous landmarks otherwise |
 | Face landmarks | mediapipe_face landmark | Hexagon NPU | Every frame. Eye contact is the headline indicator |
-| Head pose and eye contact | Kabsch alignment on 3D landmarks (numpy SVD) | Oryon CPU | A few microseconds of math. NPU dispatch would cost more than the work |
+| Head pose and eye contact | Kabsch alignment on 3D landmarks (numpy SVD) | Oryon CPU | 0.345 ms p50 on local x86 CPU, about 1% of a 33 ms frame. Too small to justify an NPU dispatch. Source: Measurement head_pose_frame_time_p50 in eval/eye_contact/results/synthetic_face_timings.json |
 | Posture | mediapipe_pose detector and landmark | Hexagon NPU | 15 fps is enough because posture changes slowly. Frees NPU time for Whisper |
 | Audio capture 16 kHz | sounddevice | Oryon CPU | I/O |
 | VAD | Silero VAD (ONNX) | Oryon CPU | Tiny stateful model on 32 ms chunks. Work per chunk is smaller than NPU call overhead |
