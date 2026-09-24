@@ -6,7 +6,8 @@ multimodal inference on the Hexagon NPU. LLM content feedback is secondary.
 
 ## Stack
 Python app. ONNX Runtime with the QNN Execution Provider on Windows ARM64.
-OpenCV capture. Local web UI on localhost. Models from Qualcomm AI Hub
+Browser capture (getUserMedia, canvas resize, raw RGB over WebSocket).
+Local web UI on localhost. Models from Qualcomm AI Hub
 (MediaPipe face, landmarks and pose, Whisper) plus Silero VAD and a small local LLM.
 Development happens on Windows x86. AI Hub hosted devices are used for NPU compile
 and profile jobs.
