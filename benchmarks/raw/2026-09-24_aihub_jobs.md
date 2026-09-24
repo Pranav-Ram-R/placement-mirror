@@ -27,6 +27,8 @@ qai-hub-models 0.63.0 does not offer plain onnx for this model.
 | pose_detector | jgnzz71kg | jp2rrvorg | jp0mmvo9g |
 | pose_landmark_detector | jprllnx0p | jpyoo7885 | j5688do6g |
 
+Measurements: 2026-09-24_mediapipe_pose_x_elite.json
+
 ## Overnight: whisper_tiny (target runtime precompiled_qnn_onnx, float)
 
 Checkpoint openai/whisper-tiny (multilingual). Smallest Whisper in qai-hub-models 0.63.0. Plain onnx is not offered for this model.
