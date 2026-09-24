@@ -1,5 +1,4 @@
 # ARM64 support verified Day 1
 numpy
-opencv-python
 qai-hub
 qai-hub-models

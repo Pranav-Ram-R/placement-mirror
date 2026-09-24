@@ -24,6 +24,12 @@ and profile jobs.
 7. Do not change scope or add features beyond the task you were given.
 8. User-facing text and docs: no em dashes, no semicolons, no hype words.
 9. Never commit model files, recordings, API tokens or session data.
+10. No OpenCV in app code. Capture and resize happen in the browser. Image
+    math uses numpy.
+11. Never trust the requested execution provider. After creating each
+    session, verify where the model was placed (strict session with CPU
+    fallback disabled, or the EP device API), and report the real compute
+    unit to the UI. A model that silently falls back to CPU must show as CPU.
 
 ## Layout
 app/ runtime code by stage. aihub/ AI Hub scripts. benchmarks/ measurements.
