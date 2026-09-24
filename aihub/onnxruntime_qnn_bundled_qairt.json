@@ -1,0 +1,202 @@
+{
+ "checked": "2026-09-25",
+ "question": "Does any onnxruntime-qnn release on PyPI bundle QAIRT exactly 2.50.0 (the AI Hub compile version)?",
+ "answer": "No. 2.6.0 bundles 2.50.40. No release bundles 2.50.0.",
+ "method": "For every release on https://pypi.org/pypi/onnxruntime-qnn/json, the cp311 win_arm64 wheel was read with HTTP range requests (no install). Sources: qnn_version in build_and_package_info.py where present (2.x only), the ProductVersion resource of QnnHtpV73Stub.dll, and for 1.18.x (no version resource) the version string embedded in QnnHtp.dll.",
+ "aihub_qairt_available": [
+  "2.45.0.260326154327",
+  "2.49.0.260730134355",
+  "2.50.0.260828221209"
+ ],
+ "releases": [
+  {
+   "onnxruntime_qnn": "1.17.3",
+   "wheel": "onnxruntime_qnn-1.17.3-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": null,
+   "source": "wheel bundles no QNN DLLs (only onnxruntime_providers_shared.dll)",
+   "QnnHtpV73Stub_ProductVersion": null
+  },
+  {
+   "onnxruntime_qnn": "1.18.0",
+   "wheel": "onnxruntime_qnn-1.18.0-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.22.0",
+   "source": "string v2.22.0.240425235059 in QnnHtp.dll",
+   "QnnHtpV73Stub_ProductVersion": null
+  },
+  {
+   "onnxruntime_qnn": "1.18.1",
+   "wheel": "onnxruntime_qnn-1.18.1-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.22.10",
+   "source": "string v2.22.10.240618114939 in QnnHtp.dll",
+   "QnnHtpV73Stub_ProductVersion": null
+  },
+  {
+   "onnxruntime_qnn": "1.19.0",
+   "wheel": "onnxruntime_qnn-1.19.0-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.25.0",
+   "source": "QnnHtpV73Stub.dll ProductVersion",
+   "QnnHtpV73Stub_ProductVersion": "2.25.0.240728104910_97711"
+  },
+  {
+   "onnxruntime_qnn": "1.20.0",
+   "wheel": "onnxruntime_qnn-1.20.0-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.27.0",
+   "source": "QnnHtpV73Stub.dll ProductVersion",
+   "QnnHtpV73Stub_ProductVersion": "2.27.0.240926142112_100894"
+  },
+  {
+   "onnxruntime_qnn": "1.20.1",
+   "wheel": "onnxruntime_qnn-1.20.1-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.28.2",
+   "source": "QnnHtpV73Stub.dll ProductVersion",
+   "QnnHtpV73Stub_ProductVersion": "2.28.2.241116104011_103376"
+  },
+  {
+   "onnxruntime_qnn": "1.20.2",
+   "wheel": "onnxruntime_qnn-1.20.2-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.28.2",
+   "source": "QnnHtpV73Stub.dll ProductVersion",
+   "QnnHtpV73Stub_ProductVersion": "2.28.2.241116104011_103376"
+  },
+  {
+   "onnxruntime_qnn": "1.20.2.dev20250213004",
+   "wheel": "onnxruntime_qnn-1.20.2.dev20250213004-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.28.2",
+   "source": "QnnHtpV73Stub.dll ProductVersion",
+   "QnnHtpV73Stub_ProductVersion": "2.28.2.241116104011_103376"
+  },
+  {
+   "onnxruntime_qnn": "1.21.0",
+   "wheel": "onnxruntime_qnn-1.21.0-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.31.0",
+   "source": "QnnHtpV73Stub.dll ProductVersion",
+   "QnnHtpV73Stub_ProductVersion": "2.31.0.250130151446_114721"
+  },
+  {
+   "onnxruntime_qnn": "1.21.1",
+   "wheel": "onnxruntime_qnn-1.21.1-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.31.0",
+   "source": "QnnHtpV73Stub.dll ProductVersion",
+   "QnnHtpV73Stub_ProductVersion": "2.31.0.250130151446_114721"
+  },
+  {
+   "onnxruntime_qnn": "1.22.0",
+   "wheel": "onnxruntime_qnn-1.22.0-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.33.2",
+   "source": "QnnHtpV73Stub.dll ProductVersion",
+   "QnnHtpV73Stub_ProductVersion": "2.33.2.250410134701_117956"
+  },
+  {
+   "onnxruntime_qnn": "1.22.2",
+   "wheel": "onnxruntime_qnn-1.22.2-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.36.1",
+   "source": "QnnHtpV73Stub.dll ProductVersion",
+   "QnnHtpV73Stub_ProductVersion": "2.36.1.250708151608_123266"
+  },
+  {
+   "onnxruntime_qnn": "1.23.0",
+   "wheel": "onnxruntime_qnn-1.23.0-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.37.1",
+   "source": "QnnHtpV73Stub.dll ProductVersion",
+   "QnnHtpV73Stub_ProductVersion": "2.37.1.250807093845_124904"
+  },
+  {
+   "onnxruntime_qnn": "1.23.1",
+   "wheel": "onnxruntime_qnn-1.23.1-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.37.1",
+   "source": "QnnHtpV73Stub.dll ProductVersion",
+   "QnnHtpV73Stub_ProductVersion": "2.37.1.250807093845_124904"
+  },
+  {
+   "onnxruntime_qnn": "1.23.2",
+   "wheel": "onnxruntime_qnn-1.23.2-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.37.1",
+   "source": "QnnHtpV73Stub.dll ProductVersion",
+   "QnnHtpV73Stub_ProductVersion": "2.37.1.250807093845_124904"
+  },
+  {
+   "onnxruntime_qnn": "1.24.1",
+   "wheel": "onnxruntime_qnn-1.24.1-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.42.0",
+   "source": "QnnHtpV73Stub.dll ProductVersion",
+   "QnnHtpV73Stub_ProductVersion": "2.42.0.251225135753_193295"
+  },
+  {
+   "onnxruntime_qnn": "1.24.2",
+   "wheel": "onnxruntime_qnn-1.24.2-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.42.0",
+   "source": "QnnHtpV73Stub.dll ProductVersion",
+   "QnnHtpV73Stub_ProductVersion": "2.42.0.251225135753_193295"
+  },
+  {
+   "onnxruntime_qnn": "1.24.3",
+   "wheel": "onnxruntime_qnn-1.24.3-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.42.0",
+   "source": "QnnHtpV73Stub.dll ProductVersion",
+   "QnnHtpV73Stub_ProductVersion": "2.42.0.251225135753_193295"
+  },
+  {
+   "onnxruntime_qnn": "1.24.4",
+   "wheel": "onnxruntime_qnn-1.24.4-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.42.0",
+   "source": "QnnHtpV73Stub.dll ProductVersion",
+   "QnnHtpV73Stub_ProductVersion": "2.42.0.251225135753_193295"
+  },
+  {
+   "onnxruntime_qnn": "2.0.0",
+   "wheel": "onnxruntime_qnn-2.0.0-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.42.0",
+   "source": "build_and_package_info.py qnn_version",
+   "QnnHtpV73Stub_ProductVersion": "2.42.0.251225135753_193295"
+  },
+  {
+   "onnxruntime_qnn": "2.1.0",
+   "wheel": "onnxruntime_qnn-2.1.0-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.45.40",
+   "source": "build_and_package_info.py qnn_version",
+   "QnnHtpV73Stub_ProductVersion": "2.45.40.260406130939"
+  },
+  {
+   "onnxruntime_qnn": "2.1.1",
+   "wheel": "onnxruntime_qnn-2.1.1-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.45.41",
+   "source": "build_and_package_info.py qnn_version",
+   "QnnHtpV73Stub_ProductVersion": "2.45.41.260507231357"
+  },
+  {
+   "onnxruntime_qnn": "2.2.0",
+   "wheel": "onnxruntime_qnn-2.2.0-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.46.0",
+   "source": "build_and_package_info.py qnn_version",
+   "QnnHtpV73Stub_ProductVersion": "2.46.0.260424121129"
+  },
+  {
+   "onnxruntime_qnn": "2.3.0",
+   "wheel": "onnxruntime_qnn-2.3.0-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.47.0",
+   "source": "build_and_package_info.py qnn_version",
+   "QnnHtpV73Stub_ProductVersion": "2.47.0.260601114230"
+  },
+  {
+   "onnxruntime_qnn": "2.4.0",
+   "wheel": "onnxruntime_qnn-2.4.0-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.48.40",
+   "source": "build_and_package_info.py qnn_version",
+   "QnnHtpV73Stub_ProductVersion": "2.48.40.260702151143"
+  },
+  {
+   "onnxruntime_qnn": "2.5.0",
+   "wheel": "onnxruntime_qnn-2.5.0-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.49.40",
+   "source": "build_and_package_info.py qnn_version",
+   "QnnHtpV73Stub_ProductVersion": "2.49.40.260810104044"
+  },
+  {
+   "onnxruntime_qnn": "2.6.0",
+   "wheel": "onnxruntime_qnn-2.6.0-cp311-cp311-win_arm64.whl",
+   "bundled_qairt": "2.50.40",
+   "source": "build_and_package_info.py qnn_version",
+   "QnnHtpV73Stub_ProductVersion": "2.50.40.260831140417"
+  }
+ ]
+}
