@@ -76,6 +76,12 @@ def log_facts(job, logdir: Path) -> dict:
 
 def records_for(job, entry: dict, logdir: Path) -> list[Measurement]:
     profile = job.download_profile()
+    # The AI Hub docs ("Working with Jobs", "Profile Jobs") show download_profile() as a flat
+    # dict with 'all_inference_times' at the top level. With qai-hub 0.55.0 (checked 2026-09-25)
+    # the observed structure is {'execution_summary': {..., 'estimated_inference_time',
+    # 'inference_memory_peak_range', 'all_inference_times': [us, ...]}, 'execution_detail':
+    # [{'name', 'type', 'compute_unit', 'execution_time', 'execution_cycles'}, ...]}.
+    # The docs' execution_summary['execution_time'] key does not exist in these results.
     summary = profile["execution_summary"]
     samples = [float(x) for x in summary["all_inference_times"]]
     sample_path = SAMPLES / f"{job.job_id}.json"
