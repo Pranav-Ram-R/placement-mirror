@@ -145,6 +145,25 @@ def test_versions_default_to_none():
     assert m.qnn_version is None and m.ort_version is None
 
 
+def test_exec_precision_defaults_to_none_and_accepts_allowed_values():
+    assert make_measurement().exec_precision is None
+    for precision in sorted(PRECISIONS):
+        assert make_measurement(exec_precision=precision).exec_precision == precision
+
+
+@pytest.mark.parametrize("exec_precision", ["", "fp16", "float", "half"])
+def test_invalid_exec_precision_raises(exec_precision):
+    with pytest.raises(ValueError):
+        make_measurement(exec_precision=exec_precision)
+
+
+def test_exec_precision_round_trip(tmp_path):
+    m = make_measurement(precision="float32", exec_precision="float16")
+    path = tmp_path / "records.json"
+    save_json([m], path)
+    assert load_json(path) == [m]
+
+
 def test_load_old_format_record(tmp_path):
     old = {
         "kind": "measurement",

@@ -17,6 +17,7 @@ COLUMNS = [
     ("source", "source"),
     ("runtime", "runtime"),
     ("precision", "precision"),
+    ("exec_precision", "exec_precision"),
     ("latency", "estimated_inference_time"),
     ("peak memory", "inference_memory_peak_max"),
     ("NPU ops", "ops_on_NPU"),
@@ -42,7 +43,7 @@ def load_all(raw: Path = RAW) -> list[Measurement]:
 def rows(records: list[Measurement]) -> list[dict[str, str]]:
     groups: dict[tuple, list[Measurement]] = defaultdict(list)
     for m in records:
-        groups[(m.job_id, m.model, m.source, m.runtime, m.precision)].append(m)
+        groups[(m.job_id, m.model, m.source, m.runtime, m.precision, m.exec_precision)].append(m)
     out = []
     for group in groups.values():
         first = group[0]
@@ -52,6 +53,7 @@ def rows(records: list[Measurement]) -> list[dict[str, str]]:
             "source": first.source.value,
             "runtime": first.runtime,
             "precision": first.precision,
+            "exec_precision": first.exec_precision or "None",
             "qnn_version": first.qnn_version or "None",
             "ort_version": first.ort_version or "None",
             "job_id": first.job_id or "None",

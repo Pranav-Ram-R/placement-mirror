@@ -47,6 +47,7 @@ class Measurement:
     runtime: str
     compute_unit: str
     precision: str
+    exec_precision: str | None = None
     qnn_version: str | None = None
     ort_version: str | None = None
     job_id: str | None = None
@@ -63,6 +64,11 @@ class Measurement:
         if self.precision not in PRECISIONS:
             raise ValueError(
                 f"Measurement.precision must be one of {sorted(PRECISIONS)}, got {self.precision!r}"
+            )
+        if self.exec_precision is not None and self.exec_precision not in PRECISIONS:
+            raise ValueError(
+                f"Measurement.exec_precision must be None or one of {sorted(PRECISIONS)}, "
+                f"got {self.exec_precision!r}"
             )
         object.__setattr__(self, "value", _as_float(self.value, "Measurement"))
 

@@ -1,0 +1,21 @@
+{
+ "job_id": "j5m00d0wg",
+ "model": "whisper_tiny_float_encoder",
+ "source": "AI Hub hosted Snapdragon X Elite",
+ "device": "Snapdragon X Elite CRD",
+ "field": "execution_summary.all_inference_times",
+ "unit": "us",
+ "count": 10,
+ "samples": [
+  27939,
+  26778,
+  24700,
+  25247,
+  24826,
+  24812,
+  25196,
+  24974,
+  24752,
+  24697
+ ]
+}

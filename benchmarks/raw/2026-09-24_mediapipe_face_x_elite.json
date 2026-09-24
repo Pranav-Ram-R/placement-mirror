@@ -9,11 +9,12 @@
     "runtime": "onnx",
     "compute_unit": "NPU",
     "precision": "float32",
+    "exec_precision": "float16",
     "qnn_version": "2.50.0",
     "ort_version": "1.27.1",
     "job_id": "jp2rrvw4g",
     "timestamp": "2026-09-24T18:33:05",
-    "notes": "https://workbench.aihub.qualcomm.com/jobs/jp2rrvw4g/ | ops by compute unit: NPU 145 | runtime from --target_runtime of compile job jgnzz7nrg | precision float32: compile job jgnzz7nrg has no quantize option and target model float I/O is float32 | qnn_version and ort_version from profile job log (QNN SDK DLL directory, 'ONNX Runtime version' line) | profile log shows enable_htp_fp16_precision = 1"
+    "notes": "https://workbench.aihub.qualcomm.com/jobs/jp2rrvw4g/ | ops by compute unit: NPU 145 | runtime from --target_runtime of compile job jgnzz7nrg | precision float32: compile job jgnzz7nrg has no quantize option and target model float I/O is float32 | qnn_version and ort_version from profile job log (QNN SDK DLL directory, 'ONNX Runtime version' line) | exec_precision float16 from profile job log line: [job_id: jp2rrvw4g] [model.onnx] enable_htp_fp16_precision = 1. This should normally be '1' unless the model is fully quantized or on a device that does not support fp16. | this job's estimated_inference_time equals the min of the 100 per-iteration times in benchmarks/raw/samples/jp2rrvw4g.json"
   },
   {
     "kind": "measurement",
@@ -25,11 +26,12 @@
     "runtime": "onnx",
     "compute_unit": "NPU",
     "precision": "float32",
+    "exec_precision": "float16",
     "qnn_version": "2.50.0",
     "ort_version": "1.27.1",
     "job_id": "jp2rrvw4g",
     "timestamp": "2026-09-24T18:33:05",
-    "notes": "https://workbench.aihub.qualcomm.com/jobs/jp2rrvw4g/ | ops by compute unit: NPU 145 | range 1478656-1478656 | runtime from --target_runtime of compile job jgnzz7nrg | precision float32: compile job jgnzz7nrg has no quantize option and target model float I/O is float32 | qnn_version and ort_version from profile job log (QNN SDK DLL directory, 'ONNX Runtime version' line) | profile log shows enable_htp_fp16_precision = 1"
+    "notes": "https://workbench.aihub.qualcomm.com/jobs/jp2rrvw4g/ | ops by compute unit: NPU 145 | range 1478656-1478656 | runtime from --target_runtime of compile job jgnzz7nrg | precision float32: compile job jgnzz7nrg has no quantize option and target model float I/O is float32 | qnn_version and ort_version from profile job log (QNN SDK DLL directory, 'ONNX Runtime version' line) | exec_precision float16 from profile job log line: [job_id: jp2rrvw4g] [model.onnx] enable_htp_fp16_precision = 1. This should normally be '1' unless the model is fully quantized or on a device that does not support fp16. | this job's estimated_inference_time equals the min of the 100 per-iteration times in benchmarks/raw/samples/jp2rrvw4g.json"
   },
   {
     "kind": "measurement",
@@ -41,11 +43,12 @@
     "runtime": "onnx",
     "compute_unit": "NPU",
     "precision": "float32",
+    "exec_precision": "float16",
     "qnn_version": "2.50.0",
     "ort_version": "1.27.1",
     "job_id": "jp2rrvw4g",
     "timestamp": "2026-09-24T18:33:05",
-    "notes": "https://workbench.aihub.qualcomm.com/jobs/jp2rrvw4g/ | ops by compute unit: NPU 145 | runtime from --target_runtime of compile job jgnzz7nrg | precision float32: compile job jgnzz7nrg has no quantize option and target model float I/O is float32 | qnn_version and ort_version from profile job log (QNN SDK DLL directory, 'ONNX Runtime version' line) | profile log shows enable_htp_fp16_precision = 1"
+    "notes": "https://workbench.aihub.qualcomm.com/jobs/jp2rrvw4g/ | ops by compute unit: NPU 145 | runtime from --target_runtime of compile job jgnzz7nrg | precision float32: compile job jgnzz7nrg has no quantize option and target model float I/O is float32 | qnn_version and ort_version from profile job log (QNN SDK DLL directory, 'ONNX Runtime version' line) | exec_precision float16 from profile job log line: [job_id: jp2rrvw4g] [model.onnx] enable_htp_fp16_precision = 1. This should normally be '1' unless the model is fully quantized or on a device that does not support fp16. | this job's estimated_inference_time equals the min of the 100 per-iteration times in benchmarks/raw/samples/jp2rrvw4g.json"
   },
   {
     "kind": "measurement",
@@ -57,11 +60,12 @@
     "runtime": "onnx",
     "compute_unit": "NPU",
     "precision": "float32",
+    "exec_precision": "float16",
     "qnn_version": "2.50.0",
     "ort_version": "1.27.1",
     "job_id": "jpyoo7x75",
     "timestamp": "2026-09-24T18:33:08",
-    "notes": "https://workbench.aihub.qualcomm.com/jobs/jpyoo7x75/ | ops by compute unit: NPU 105 | runtime from --target_runtime of compile job jprlln09p | precision float32: compile job jprlln09p has no quantize option and target model float I/O is float32 | qnn_version and ort_version from profile job log (QNN SDK DLL directory, 'ONNX Runtime version' line) | profile log shows enable_htp_fp16_precision = 1"
+    "notes": "https://workbench.aihub.qualcomm.com/jobs/jpyoo7x75/ | ops by compute unit: NPU 105 | runtime from --target_runtime of compile job jprlln09p | precision float32: compile job jprlln09p has no quantize option and target model float I/O is float32 | qnn_version and ort_version from profile job log (QNN SDK DLL directory, 'ONNX Runtime version' line) | exec_precision float16 from profile job log line: [job_id: jpyoo7x75] [model.onnx] enable_htp_fp16_precision = 1. This should normally be '1' unless the model is fully quantized or on a device that does not support fp16. | this job's estimated_inference_time equals the min of the 100 per-iteration times in benchmarks/raw/samples/jpyoo7x75.json"
   },
   {
     "kind": "measurement",
@@ -73,11 +77,12 @@
     "runtime": "onnx",
     "compute_unit": "NPU",
     "precision": "float32",
+    "exec_precision": "float16",
     "qnn_version": "2.50.0",
     "ort_version": "1.27.1",
     "job_id": "jpyoo7x75",
     "timestamp": "2026-09-24T18:33:08",
-    "notes": "https://workbench.aihub.qualcomm.com/jobs/jpyoo7x75/ | ops by compute unit: NPU 105 | range 471040-471040 | runtime from --target_runtime of compile job jprlln09p | precision float32: compile job jprlln09p has no quantize option and target model float I/O is float32 | qnn_version and ort_version from profile job log (QNN SDK DLL directory, 'ONNX Runtime version' line) | profile log shows enable_htp_fp16_precision = 1"
+    "notes": "https://workbench.aihub.qualcomm.com/jobs/jpyoo7x75/ | ops by compute unit: NPU 105 | range 471040-471040 | runtime from --target_runtime of compile job jprlln09p | precision float32: compile job jprlln09p has no quantize option and target model float I/O is float32 | qnn_version and ort_version from profile job log (QNN SDK DLL directory, 'ONNX Runtime version' line) | exec_precision float16 from profile job log line: [job_id: jpyoo7x75] [model.onnx] enable_htp_fp16_precision = 1. This should normally be '1' unless the model is fully quantized or on a device that does not support fp16. | this job's estimated_inference_time equals the min of the 100 per-iteration times in benchmarks/raw/samples/jpyoo7x75.json"
   },
   {
     "kind": "measurement",
@@ -89,10 +94,11 @@
     "runtime": "onnx",
     "compute_unit": "NPU",
     "precision": "float32",
+    "exec_precision": "float16",
     "qnn_version": "2.50.0",
     "ort_version": "1.27.1",
     "job_id": "jpyoo7x75",
     "timestamp": "2026-09-24T18:33:08",
-    "notes": "https://workbench.aihub.qualcomm.com/jobs/jpyoo7x75/ | ops by compute unit: NPU 105 | runtime from --target_runtime of compile job jprlln09p | precision float32: compile job jprlln09p has no quantize option and target model float I/O is float32 | qnn_version and ort_version from profile job log (QNN SDK DLL directory, 'ONNX Runtime version' line) | profile log shows enable_htp_fp16_precision = 1"
+    "notes": "https://workbench.aihub.qualcomm.com/jobs/jpyoo7x75/ | ops by compute unit: NPU 105 | runtime from --target_runtime of compile job jprlln09p | precision float32: compile job jprlln09p has no quantize option and target model float I/O is float32 | qnn_version and ort_version from profile job log (QNN SDK DLL directory, 'ONNX Runtime version' line) | exec_precision float16 from profile job log line: [job_id: jpyoo7x75] [model.onnx] enable_htp_fp16_precision = 1. This should normally be '1' unless the model is fully quantized or on a device that does not support fp16. | this job's estimated_inference_time equals the min of the 100 per-iteration times in benchmarks/raw/samples/jpyoo7x75.json"
   }
 ]
