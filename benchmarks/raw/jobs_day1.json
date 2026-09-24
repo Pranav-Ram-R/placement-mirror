@@ -11,7 +11,7 @@
     "group": "2 vision onnx CPU and GPU",
     "device": "Snapdragon X Elite CRD",
     "submitted_at": "2026-09-24T17:49:38+00:00",
-    "status": "MEASURING_PERFORMANCE"
+    "status": "SUCCESS"
   },
   {
     "job_id": "jprllxnep",
@@ -25,7 +25,7 @@
     "group": "2 vision onnx CPU and GPU",
     "device": "Snapdragon X Elite CRD",
     "submitted_at": "2026-09-24T17:49:39+00:00",
-    "status": "MEASURING_PERFORMANCE"
+    "status": "SUCCESS"
   },
   {
     "job_id": "jp2rrovmg",
@@ -39,7 +39,7 @@
     "group": "2 vision onnx CPU and GPU",
     "device": "Snapdragon X Elite CRD",
     "submitted_at": "2026-09-24T17:49:42+00:00",
-    "status": "CREATED"
+    "status": "SUCCESS"
   },
   {
     "job_id": "jpyoo8745",
@@ -53,7 +53,8 @@
     "group": "2 vision onnx CPU and GPU",
     "device": "Snapdragon X Elite CRD",
     "submitted_at": "2026-09-24T17:49:43+00:00",
-    "status": "CREATED"
+    "status": "FAILED",
+    "error": "Failed to profile the model: Exception during initialization: C:\\dev\\tetracode\\build\\third_party.build\\onnxruntime\\src\\onnxruntime\\core\\providers\\dml\\DmlExecutionProvider\\src\\MLOperatorAuthorImpl.cpp(2879)\\onnxruntime.dll!00007FFED1CD7124: (caller: 00007FFED1CF36B0) Exception(1) tid(3ac4) 80070057 The parameter is incorrect.\r\n"
   },
   {
     "job_id": "jp8eej48p",
@@ -151,7 +152,7 @@
     "group": "1 shipping runtime NPU",
     "device": "Snapdragon X Elite CRD",
     "submitted_at": "2026-09-24T17:51:20+00:00",
-    "status": "CREATED"
+    "status": "SUCCESS"
   },
   {
     "job_id": "jgzllz465",
@@ -165,7 +166,7 @@
     "group": "1 shipping runtime NPU",
     "device": "Snapdragon X Elite CRD",
     "submitted_at": "2026-09-24T17:51:35+00:00",
-    "status": "CREATED"
+    "status": "SUCCESS"
   },
   {
     "job_id": "j5wlly1jp",
@@ -179,7 +180,7 @@
     "group": "2 vision onnx CPU and GPU",
     "device": "Snapdragon X Elite CRD",
     "submitted_at": "2026-09-24T17:51:37+00:00",
-    "status": "CREATED"
+    "status": "SUCCESS"
   },
   {
     "job_id": "jg9zzoxvp",
@@ -193,7 +194,7 @@
     "group": "2 vision onnx CPU and GPU",
     "device": "Snapdragon X Elite CRD",
     "submitted_at": "2026-09-24T17:51:38+00:00",
-    "status": "CREATED"
+    "status": "SUCCESS"
   },
   {
     "job_id": "jp1nnovlg",
@@ -207,7 +208,7 @@
     "group": "2 vision onnx CPU and GPU",
     "device": "Snapdragon X Elite CRD",
     "submitted_at": "2026-09-24T17:51:40+00:00",
-    "status": "CREATED"
+    "status": "SUCCESS"
   },
   {
     "job_id": "jgddd6zlg",
@@ -221,7 +222,8 @@
     "group": "2 vision onnx CPU and GPU",
     "device": "Snapdragon X Elite CRD",
     "submitted_at": "2026-09-24T17:51:42+00:00",
-    "status": "CREATED"
+    "status": "FAILED",
+    "error": "Failed to profile the model: Exception during initialization: C:\\dev\\tetracode\\build\\third_party.build\\onnxruntime\\src\\onnxruntime\\core\\providers\\dml\\DmlExecutionProvider\\src\\MLOperatorAuthorImpl.cpp(2879)\\onnxruntime.dll!00007FF8DE1A7124: (caller: 00007FF8DE1C36B0) Exception(1) tid(208c) 80070057 The parameter is incorrect.\r\n"
   },
   {
     "job_id": "j57eeo9rp",
@@ -235,7 +237,7 @@
     "group": "3 whisper_tiny onnx float32",
     "device": "Snapdragon X Elite CRD",
     "submitted_at": "2026-09-24T17:51:44+00:00",
-    "status": "CREATED"
+    "status": "SUCCESS"
   },
   {
     "job_id": "jp4yye3lp",
@@ -249,7 +251,7 @@
     "group": "3 whisper_tiny onnx float32",
     "device": "Snapdragon X Elite CRD",
     "submitted_at": "2026-09-24T17:51:45+00:00",
-    "status": "CREATED"
+    "status": "SUCCESS"
   },
   {
     "job_id": "jpxll0x9p",
@@ -263,7 +265,7 @@
     "group": "3 whisper_tiny onnx float32",
     "device": "Snapdragon X Elite CRD",
     "submitted_at": "2026-09-24T17:51:47+00:00",
-    "status": "CREATED"
+    "status": "SUCCESS"
   },
   {
     "job_id": "jgnzz1kmg",
@@ -277,7 +279,7 @@
     "group": "3 whisper_tiny onnx float32",
     "device": "Snapdragon X Elite CRD",
     "submitted_at": "2026-09-24T17:52:35+00:00",
-    "status": "CREATED"
+    "status": "SUCCESS"
   },
   {
     "job_id": "jprllxwep",
@@ -291,7 +293,7 @@
     "group": "3 whisper_tiny onnx float32",
     "device": "Snapdragon X Elite CRD",
     "submitted_at": "2026-09-24T17:52:36+00:00",
-    "status": "CREATED"
+    "status": "SUCCESS"
   },
   {
     "job_id": "jp2rroemg",
@@ -305,6 +307,6 @@
     "group": "3 whisper_tiny onnx float32",
     "device": "Snapdragon X Elite CRD",
     "submitted_at": "2026-09-24T17:52:38+00:00",
-    "status": "CREATED"
+    "status": "SUCCESS"
   }
 ]
