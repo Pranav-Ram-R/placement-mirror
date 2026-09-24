@@ -1,0 +1,40 @@
+name: arm64-deps
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  deps:
+    runs-on: windows-11-arm
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          architecture: arm64
+
+      - name: Print platform
+        shell: python
+        run: |
+          import platform
+          import sys
+          print("platform.machine():", platform.machine())
+          print("sys.version:", sys.version)
+          if platform.machine() != "ARM64":
+              sys.exit("Expected a native ARM64 Python")
+
+      - name: Check dependencies
+        run: python ci/check_deps.py
+
+      - name: Add report to job summary
+        if: always()
+        run: Get-Content ci/deps_report.md | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: deps_report
+          path: ci/deps_report.md
+          if-no-files-found: warn
