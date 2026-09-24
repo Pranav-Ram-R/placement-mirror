@@ -76,3 +76,7 @@ models/
 *.dlc
 recordings/
 sessions/
+eval/**/*.wav
+eval/**/*.mp4
+eval/**/*.avi
+eval/**/labels_private*

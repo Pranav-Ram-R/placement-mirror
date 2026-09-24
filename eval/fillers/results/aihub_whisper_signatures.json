@@ -1,0 +1,1227 @@
+{
+  "models": [
+    {
+      "path": "models/distil_whisper/distil_whisper-onnx-float/decoder.onnx",
+      "component": "decoder",
+      "precompiled_qnn_context": false,
+      "node_count": 964,
+      "op_types_sample": [
+        "Add",
+        "Cast",
+        "Concat",
+        "Conv",
+        "Div",
+        "Gather",
+        "Gelu",
+        "LayerNormalization",
+        "MatMul",
+        "Mul",
+        "Reshape",
+        "Slice"
+      ],
+      "inputs": [
+        {
+          "name": "input_ids",
+          "shape": [
+            1,
+            1
+          ],
+          "dtype": "int32"
+        },
+        {
+          "name": "attention_mask",
+          "shape": [
+            1,
+            1,
+            1,
+            200
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_self_0_in",
+          "shape": [
+            12,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_self_0_in",
+          "shape": [
+            12,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_self_1_in",
+          "shape": [
+            12,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_self_1_in",
+          "shape": [
+            12,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_self_2_in",
+          "shape": [
+            12,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_self_2_in",
+          "shape": [
+            12,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_self_3_in",
+          "shape": [
+            12,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_self_3_in",
+          "shape": [
+            12,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_cross_0",
+          "shape": [
+            12,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_cross_0",
+          "shape": [
+            12,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_cross_1",
+          "shape": [
+            12,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_cross_1",
+          "shape": [
+            12,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_cross_2",
+          "shape": [
+            12,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_cross_2",
+          "shape": [
+            12,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_cross_3",
+          "shape": [
+            12,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_cross_3",
+          "shape": [
+            12,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "position_ids",
+          "shape": [
+            1
+          ],
+          "dtype": "int32"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "logits",
+          "shape": [
+            1,
+            51864,
+            1,
+            1
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_self_0_out",
+          "shape": [
+            12,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_self_0_out",
+          "shape": [
+            12,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_self_1_out",
+          "shape": [
+            12,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_self_1_out",
+          "shape": [
+            12,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_self_2_out",
+          "shape": [
+            12,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_self_2_out",
+          "shape": [
+            12,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_self_3_out",
+          "shape": [
+            12,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_self_3_out",
+          "shape": [
+            12,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float"
+        }
+      ]
+    },
+    {
+      "path": "models/distil_whisper/distil_whisper-onnx-float/encoder.onnx",
+      "component": "encoder",
+      "precompiled_qnn_context": false,
+      "node_count": 1681,
+      "op_types_sample": [
+        "Add",
+        "Concat",
+        "Conv",
+        "Gelu",
+        "LayerNormalization",
+        "MatMul",
+        "Mul",
+        "Reshape",
+        "Softmax",
+        "Transpose"
+      ],
+      "inputs": [
+        {
+          "name": "input_features",
+          "shape": [
+            1,
+            80,
+            3000
+          ],
+          "dtype": "float"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "k_cache_cross_0",
+          "shape": [
+            12,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_cross_0",
+          "shape": [
+            12,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_cross_1",
+          "shape": [
+            12,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_cross_1",
+          "shape": [
+            12,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_cross_2",
+          "shape": [
+            12,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_cross_2",
+          "shape": [
+            12,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_cross_3",
+          "shape": [
+            12,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_cross_3",
+          "shape": [
+            12,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float"
+        }
+      ]
+    },
+    {
+      "path": "models/whisper_tiny/whisper_tiny-onnx-float32-day1/decoder/job_jp3zzowz5_optimized_onnx/model.onnx",
+      "component": "decoder",
+      "precompiled_qnn_context": false,
+      "node_count": 532,
+      "op_types_sample": [
+        "Add",
+        "Cast",
+        "Concat",
+        "Conv",
+        "Gather",
+        "Gelu",
+        "LayerNormalization",
+        "MatMul",
+        "Reshape",
+        "Slice",
+        "Softmax",
+        "Split"
+      ],
+      "inputs": [
+        {
+          "name": "input_ids",
+          "shape": [
+            1,
+            1
+          ],
+          "dtype": "int32"
+        },
+        {
+          "name": "attention_mask",
+          "shape": [
+            1,
+            1,
+            1,
+            200
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_self_0_in",
+          "shape": [
+            6,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_self_0_in",
+          "shape": [
+            6,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_self_1_in",
+          "shape": [
+            6,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_self_1_in",
+          "shape": [
+            6,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_self_2_in",
+          "shape": [
+            6,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_self_2_in",
+          "shape": [
+            6,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_self_3_in",
+          "shape": [
+            6,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_self_3_in",
+          "shape": [
+            6,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_cross_0",
+          "shape": [
+            6,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_cross_0",
+          "shape": [
+            6,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_cross_1",
+          "shape": [
+            6,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_cross_1",
+          "shape": [
+            6,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_cross_2",
+          "shape": [
+            6,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_cross_2",
+          "shape": [
+            6,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_cross_3",
+          "shape": [
+            6,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_cross_3",
+          "shape": [
+            6,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "position_ids",
+          "shape": [
+            1
+          ],
+          "dtype": "int32"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "logits",
+          "shape": [
+            1,
+            51865,
+            1,
+            1
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_self_0_out",
+          "shape": [
+            6,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_self_0_out",
+          "shape": [
+            6,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_self_1_out",
+          "shape": [
+            6,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_self_1_out",
+          "shape": [
+            6,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_self_2_out",
+          "shape": [
+            6,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_self_2_out",
+          "shape": [
+            6,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_self_3_out",
+          "shape": [
+            6,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_self_3_out",
+          "shape": [
+            6,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float"
+        }
+      ]
+    },
+    {
+      "path": "models/whisper_tiny/whisper_tiny-onnx-float32-day1/encoder/job_j5688od7g_optimized_onnx/model.onnx",
+      "component": "encoder",
+      "precompiled_qnn_context": false,
+      "node_count": 385,
+      "op_types_sample": [
+        "Add",
+        "Concat",
+        "Conv",
+        "Gelu",
+        "LayerNormalization",
+        "MatMul",
+        "Reshape",
+        "Softmax",
+        "Transpose"
+      ],
+      "inputs": [
+        {
+          "name": "input_features",
+          "shape": [
+            1,
+            80,
+            3000
+          ],
+          "dtype": "float"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "k_cache_cross_0",
+          "shape": [
+            6,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_cross_0",
+          "shape": [
+            6,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_cross_1",
+          "shape": [
+            6,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_cross_1",
+          "shape": [
+            6,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_cross_2",
+          "shape": [
+            6,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_cross_2",
+          "shape": [
+            6,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "k_cache_cross_3",
+          "shape": [
+            6,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float"
+        },
+        {
+          "name": "v_cache_cross_3",
+          "shape": [
+            6,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float"
+        }
+      ]
+    },
+    {
+      "path": "models/whisper_tiny/whisper_tiny-precompiled_qnn_onnx-float-qualcomm_snapdragon_x_elite/decoder.onnx",
+      "component": "decoder",
+      "precompiled_qnn_context": true,
+      "node_count": 1,
+      "op_types_sample": [
+        "EPContext"
+      ],
+      "inputs": [
+        {
+          "name": "input_ids",
+          "shape": [
+            1,
+            1
+          ],
+          "dtype": "int32"
+        },
+        {
+          "name": "position_ids",
+          "shape": [
+            1
+          ],
+          "dtype": "int32"
+        },
+        {
+          "name": "k_cache_self_0_in",
+          "shape": [
+            6,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "v_cache_self_0_in",
+          "shape": [
+            6,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "attention_mask",
+          "shape": [
+            1,
+            1,
+            1,
+            200
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "k_cache_cross_0",
+          "shape": [
+            6,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "v_cache_cross_0",
+          "shape": [
+            6,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "k_cache_self_1_in",
+          "shape": [
+            6,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "v_cache_self_1_in",
+          "shape": [
+            6,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "k_cache_cross_1",
+          "shape": [
+            6,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "v_cache_cross_1",
+          "shape": [
+            6,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "k_cache_self_2_in",
+          "shape": [
+            6,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "v_cache_self_2_in",
+          "shape": [
+            6,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "k_cache_cross_2",
+          "shape": [
+            6,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "v_cache_cross_2",
+          "shape": [
+            6,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "k_cache_self_3_in",
+          "shape": [
+            6,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "v_cache_self_3_in",
+          "shape": [
+            6,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "k_cache_cross_3",
+          "shape": [
+            6,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "v_cache_cross_3",
+          "shape": [
+            6,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float16"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "k_cache_self_0_out",
+          "shape": [
+            6,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "v_cache_self_0_out",
+          "shape": [
+            6,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "k_cache_self_1_out",
+          "shape": [
+            6,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "v_cache_self_1_out",
+          "shape": [
+            6,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "k_cache_self_2_out",
+          "shape": [
+            6,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "v_cache_self_2_out",
+          "shape": [
+            6,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "k_cache_self_3_out",
+          "shape": [
+            6,
+            1,
+            64,
+            199
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "v_cache_self_3_out",
+          "shape": [
+            6,
+            1,
+            199,
+            64
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "logits",
+          "shape": [
+            1,
+            51865,
+            1,
+            1
+          ],
+          "dtype": "float16"
+        }
+      ]
+    },
+    {
+      "path": "models/whisper_tiny/whisper_tiny-precompiled_qnn_onnx-float-qualcomm_snapdragon_x_elite/encoder.onnx",
+      "component": "encoder",
+      "precompiled_qnn_context": true,
+      "node_count": 1,
+      "op_types_sample": [
+        "EPContext"
+      ],
+      "inputs": [
+        {
+          "name": "input_features",
+          "shape": [
+            1,
+            80,
+            3000
+          ],
+          "dtype": "float16"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "k_cache_cross_0",
+          "shape": [
+            6,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "v_cache_cross_0",
+          "shape": [
+            6,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "k_cache_cross_1",
+          "shape": [
+            6,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "v_cache_cross_1",
+          "shape": [
+            6,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "k_cache_cross_2",
+          "shape": [
+            6,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "v_cache_cross_2",
+          "shape": [
+            6,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "k_cache_cross_3",
+          "shape": [
+            6,
+            1,
+            64,
+            1500
+          ],
+          "dtype": "float16"
+        },
+        {
+          "name": "v_cache_cross_3",
+          "shape": [
+            6,
+            1,
+            1500,
+            64
+          ],
+          "dtype": "float16"
+        }
+      ]
+    }
+  ],
+  "answers": {
+    "models/distil_whisper/distil_whisper-onnx-float/decoder.onnx": {
+      "arbitrary_prompt_prefix": "Not in one call. input_ids has shape [1, 1], so each call takes one token. A prompt prefix can only be fed token by token through the self-attention KV cache inputs (8 tensors such as k_cache_self_0_in [12, 1, 64, 199]), one decoder call per prompt token. attention_mask has 200 positions, so prompt tokens, start tokens and generated tokens together must fit in 200. Inferred from the signature, not run.",
+      "cross_attention_weights_exposed": "No. Outputs are logits, k_cache_self_0_out, v_cache_self_0_out ..., which are logits and self-attention KV cache only. The k_cache_cross and v_cache_cross tensors are decoder inputs computed by the encoder (cross-attention keys and values), not attention weights."
+    },
+    "models/whisper_tiny/whisper_tiny-onnx-float32-day1/decoder/job_jp3zzowz5_optimized_onnx/model.onnx": {
+      "arbitrary_prompt_prefix": "Not in one call. input_ids has shape [1, 1], so each call takes one token. A prompt prefix can only be fed token by token through the self-attention KV cache inputs (8 tensors such as k_cache_self_0_in [6, 1, 64, 199]), one decoder call per prompt token. attention_mask has 200 positions, so prompt tokens, start tokens and generated tokens together must fit in 200. Inferred from the signature, not run.",
+      "cross_attention_weights_exposed": "No. Outputs are logits, k_cache_self_0_out, v_cache_self_0_out ..., which are logits and self-attention KV cache only. The k_cache_cross and v_cache_cross tensors are decoder inputs computed by the encoder (cross-attention keys and values), not attention weights."
+    },
+    "models/whisper_tiny/whisper_tiny-precompiled_qnn_onnx-float-qualcomm_snapdragon_x_elite/decoder.onnx": {
+      "arbitrary_prompt_prefix": "Not in one call. input_ids has shape [1, 1], so each call takes one token. A prompt prefix can only be fed token by token through the self-attention KV cache inputs (8 tensors such as k_cache_self_0_in [6, 1, 64, 199]), one decoder call per prompt token. attention_mask has 200 positions, so prompt tokens, start tokens and generated tokens together must fit in 200. Inferred from the signature, not run.",
+      "cross_attention_weights_exposed": "No. Outputs are k_cache_self_0_out, v_cache_self_0_out, k_cache_self_1_out ..., which are logits and self-attention KV cache only. The k_cache_cross and v_cache_cross tensors are decoder inputs computed by the encoder (cross-attention keys and values), not attention weights."
+    }
+  }
+}
