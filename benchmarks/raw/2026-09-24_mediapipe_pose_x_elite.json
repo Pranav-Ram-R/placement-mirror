@@ -6,11 +6,14 @@
     "value": 887.0,
     "unit": "us",
     "source": "AI Hub hosted Snapdragon X Elite",
+    "runtime": "precompiled_qnn_onnx",
     "compute_unit": "NPU",
-    "precision": "float",
+    "precision": "float32",
+    "qnn_version": "2.50.0",
+    "ort_version": "1.27.1",
     "job_id": "jp2rrvorg",
     "timestamp": "2026-09-24T18:43:00",
-    "notes": "https://workbench.aihub.qualcomm.com/jobs/jp2rrvorg/ | ops by compute unit: NPU 136"
+    "notes": "https://workbench.aihub.qualcomm.com/jobs/jp2rrvorg/ | ops by compute unit: NPU 136 | runtime from --target_runtime of compile job jgnzz71kg | precision float32: compile job jgnzz71kg has no quantize option and target model float I/O is float32 | qnn_version and ort_version from profile job log (QNN SDK DLL directory, 'ONNX Runtime version' line) | profile log shows enable_htp_fp16_precision = 1"
   },
   {
     "kind": "measurement",
@@ -19,11 +22,14 @@
     "value": 204800.0,
     "unit": "bytes",
     "source": "AI Hub hosted Snapdragon X Elite",
+    "runtime": "precompiled_qnn_onnx",
     "compute_unit": "NPU",
-    "precision": "float",
+    "precision": "float32",
+    "qnn_version": "2.50.0",
+    "ort_version": "1.27.1",
     "job_id": "jp2rrvorg",
     "timestamp": "2026-09-24T18:43:00",
-    "notes": "https://workbench.aihub.qualcomm.com/jobs/jp2rrvorg/ | ops by compute unit: NPU 136 | range 204800-204800"
+    "notes": "https://workbench.aihub.qualcomm.com/jobs/jp2rrvorg/ | ops by compute unit: NPU 136 | range 204800-204800 | runtime from --target_runtime of compile job jgnzz71kg | precision float32: compile job jgnzz71kg has no quantize option and target model float I/O is float32 | qnn_version and ort_version from profile job log (QNN SDK DLL directory, 'ONNX Runtime version' line) | profile log shows enable_htp_fp16_precision = 1"
   },
   {
     "kind": "measurement",
@@ -32,11 +38,14 @@
     "value": 136.0,
     "unit": "ops",
     "source": "AI Hub hosted Snapdragon X Elite",
+    "runtime": "precompiled_qnn_onnx",
     "compute_unit": "NPU",
-    "precision": "float",
+    "precision": "float32",
+    "qnn_version": "2.50.0",
+    "ort_version": "1.27.1",
     "job_id": "jp2rrvorg",
     "timestamp": "2026-09-24T18:43:00",
-    "notes": "https://workbench.aihub.qualcomm.com/jobs/jp2rrvorg/ | ops by compute unit: NPU 136"
+    "notes": "https://workbench.aihub.qualcomm.com/jobs/jp2rrvorg/ | ops by compute unit: NPU 136 | runtime from --target_runtime of compile job jgnzz71kg | precision float32: compile job jgnzz71kg has no quantize option and target model float I/O is float32 | qnn_version and ort_version from profile job log (QNN SDK DLL directory, 'ONNX Runtime version' line) | profile log shows enable_htp_fp16_precision = 1"
   },
   {
     "kind": "measurement",
@@ -45,11 +54,14 @@
     "value": 780.0,
     "unit": "us",
     "source": "AI Hub hosted Snapdragon X Elite",
+    "runtime": "precompiled_qnn_onnx",
     "compute_unit": "NPU",
-    "precision": "float",
+    "precision": "float32",
+    "qnn_version": "2.50.0",
+    "ort_version": "1.27.1",
     "job_id": "jpyoo7885",
     "timestamp": "2026-09-24T18:43:03",
-    "notes": "https://workbench.aihub.qualcomm.com/jobs/jpyoo7885/ | ops by compute unit: NPU 291"
+    "notes": "https://workbench.aihub.qualcomm.com/jobs/jpyoo7885/ | ops by compute unit: NPU 291 | runtime from --target_runtime of compile job jprllnx0p | precision float32: compile job jprllnx0p has no quantize option and target model float I/O is float32 | qnn_version and ort_version from profile job log (QNN SDK DLL directory, 'ONNX Runtime version' line) | profile log shows enable_htp_fp16_precision = 1"
   },
   {
     "kind": "measurement",
@@ -58,11 +70,14 @@
     "value": 7450624.0,
     "unit": "bytes",
     "source": "AI Hub hosted Snapdragon X Elite",
+    "runtime": "precompiled_qnn_onnx",
     "compute_unit": "NPU",
-    "precision": "float",
+    "precision": "float32",
+    "qnn_version": "2.50.0",
+    "ort_version": "1.27.1",
     "job_id": "jpyoo7885",
     "timestamp": "2026-09-24T18:43:03",
-    "notes": "https://workbench.aihub.qualcomm.com/jobs/jpyoo7885/ | ops by compute unit: NPU 291 | range 7450624-7450624"
+    "notes": "https://workbench.aihub.qualcomm.com/jobs/jpyoo7885/ | ops by compute unit: NPU 291 | range 7450624-7450624 | runtime from --target_runtime of compile job jprllnx0p | precision float32: compile job jprllnx0p has no quantize option and target model float I/O is float32 | qnn_version and ort_version from profile job log (QNN SDK DLL directory, 'ONNX Runtime version' line) | profile log shows enable_htp_fp16_precision = 1"
   },
   {
     "kind": "measurement",
@@ -71,10 +86,13 @@
     "value": 291.0,
     "unit": "ops",
     "source": "AI Hub hosted Snapdragon X Elite",
+    "runtime": "precompiled_qnn_onnx",
     "compute_unit": "NPU",
-    "precision": "float",
+    "precision": "float32",
+    "qnn_version": "2.50.0",
+    "ort_version": "1.27.1",
     "job_id": "jpyoo7885",
     "timestamp": "2026-09-24T18:43:03",
-    "notes": "https://workbench.aihub.qualcomm.com/jobs/jpyoo7885/ | ops by compute unit: NPU 291"
+    "notes": "https://workbench.aihub.qualcomm.com/jobs/jpyoo7885/ | ops by compute unit: NPU 291 | runtime from --target_runtime of compile job jprllnx0p | precision float32: compile job jprllnx0p has no quantize option and target model float I/O is float32 | qnn_version and ort_version from profile job log (QNN SDK DLL directory, 'ONNX Runtime version' line) | profile log shows enable_htp_fp16_precision = 1"
   }
 ]

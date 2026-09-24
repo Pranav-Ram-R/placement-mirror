@@ -1,8 +1,9 @@
 import dataclasses
+import json
 
 import pytest
 
-from benchmarks.schema import Derived, Measurement, Source, load_json, save_json
+from benchmarks.schema import PRECISIONS, Derived, Measurement, Source, load_json, save_json
 
 
 def make_measurement(**overrides):
@@ -12,6 +13,7 @@ def make_measurement(**overrides):
         value=1.5,
         unit="ms",
         source=Source.LOCAL_X86_CPU,
+        runtime="onnx",
         compute_unit="CPU",
         precision="float32",
     )
@@ -34,6 +36,7 @@ def test_measurement_without_source_cannot_be_constructed():
             metric="latency",
             value=1.0,
             unit="ms",
+            runtime="onnx",
             compute_unit="CPU",
             precision="float32",
         )
@@ -88,6 +91,9 @@ def test_json_round_trip_preserves_all_fields(tmp_path):
         source=Source.AIHUB_X_ELITE,
         compute_unit="NPU",
         precision="w8a8",
+        runtime="precompiled_qnn_onnx",
+        qnn_version="2.50.0",
+        ort_version="1.27.1",
         job_id="jabc123",
         timestamp="2026-09-24T10:00:00+00:00",
         notes="profile job",
@@ -114,3 +120,77 @@ def test_json_round_trip_preserves_all_fields(tmp_path):
     assert loaded[0].source is Source.AIHUB_X_ELITE
     assert isinstance(loaded[1].value, float)
     assert loaded[2].inputs[0].job_id == "jabc123"
+
+
+def test_allowed_precisions():
+    assert PRECISIONS == {"float32", "float16", "w8a8", "w8a16", "w4a16", "int8", "unknown"}
+    for precision in sorted(PRECISIONS):
+        assert make_measurement(precision=precision).precision == precision
+
+
+@pytest.mark.parametrize("precision", ["", "float", "fp16", "FLOAT32", None])
+def test_invalid_precision_raises(precision):
+    with pytest.raises(ValueError):
+        make_measurement(precision=precision)
+
+
+@pytest.mark.parametrize("runtime", ["", "   ", None])
+def test_empty_runtime_raises(runtime):
+    with pytest.raises(ValueError):
+        make_measurement(runtime=runtime)
+
+
+def test_versions_default_to_none():
+    m = make_measurement()
+    assert m.qnn_version is None and m.ort_version is None
+
+
+def test_load_old_format_record(tmp_path):
+    old = {
+        "kind": "measurement",
+        "model": "mediapipe_face_float_face_detector",
+        "metric": "estimated_inference_time",
+        "value": 683.0,
+        "unit": "us",
+        "source": "AI Hub hosted Snapdragon X Elite",
+        "compute_unit": "NPU",
+        "precision": "float",
+        "job_id": "jp2rrvw4g",
+        "timestamp": "2026-09-24T18:33:05",
+        "notes": "https://workbench.aihub.qualcomm.com/jobs/jp2rrvw4g/",
+    }
+    path = tmp_path / "old.json"
+    path.write_text(json.dumps([old]), encoding="utf-8")
+
+    [m] = load_json(path)
+
+    assert m.runtime == "unknown"
+    assert m.precision == "unknown"
+    assert "legacy precision: 'float'" in m.notes
+    assert m.notes.startswith(old["notes"])
+    assert m.qnn_version is None and m.ort_version is None
+    assert (m.value, m.job_id, m.timestamp) == (683.0, "jp2rrvw4g", "2026-09-24T18:33:05")
+
+
+def test_load_old_format_record_keeps_valid_precision(tmp_path):
+    old = {
+        "kind": "measurement",
+        "model": "m",
+        "metric": "latency",
+        "value": 1.0,
+        "unit": "ms",
+        "source": "local x86 CPU",
+        "compute_unit": "CPU",
+        "precision": "float32",
+        "job_id": None,
+        "timestamp": "2026-09-24T00:00:00+00:00",
+        "notes": "",
+    }
+    path = tmp_path / "old.json"
+    path.write_text(json.dumps([old]), encoding="utf-8")
+
+    [m] = load_json(path)
+
+    assert m.runtime == "unknown"
+    assert m.precision == "float32"
+    assert m.notes == ""

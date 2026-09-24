@@ -32,6 +32,9 @@ def _as_float(value: object, owner: str) -> float:
     return float(value)
 
 
+PRECISIONS = frozenset({"float32", "float16", "w8a8", "w8a16", "w4a16", "int8", "unknown"})
+
+
 @dataclass(frozen=True, kw_only=True)
 class Measurement:
     """One number from one real run."""
@@ -41,8 +44,11 @@ class Measurement:
     value: float
     unit: str
     source: Source
+    runtime: str
     compute_unit: str
     precision: str
+    qnn_version: str | None = None
+    ort_version: str | None = None
     job_id: str | None = None
     timestamp: str = field(default_factory=_utc_now)
     notes: str = ""
@@ -52,6 +58,12 @@ class Measurement:
             raise TypeError(f"Measurement.source must be a Source, got {self.source!r}")
         if self.source is Source.AIHUB_X_ELITE and not (self.job_id and self.job_id.strip()):
             raise ValueError("Measurement from AI Hub needs a job_id")
+        if not (isinstance(self.runtime, str) and self.runtime.strip()):
+            raise ValueError("Measurement.runtime must be a non-empty string")
+        if self.precision not in PRECISIONS:
+            raise ValueError(
+                f"Measurement.precision must be one of {sorted(PRECISIONS)}, got {self.precision!r}"
+            )
         object.__setattr__(self, "value", _as_float(self.value, "Measurement"))
 
 
@@ -86,8 +98,20 @@ def _measurement_to_dict(m: Measurement) -> dict:
     return d
 
 
+def _upgrade_legacy(d: dict) -> dict:
+    """Records written before `runtime` existed. Missing facts become "unknown", never a guess."""
+    d["runtime"] = "unknown"
+    if d.get("precision") not in PRECISIONS:
+        legacy = f"legacy precision: {d.get('precision')!r}"
+        d["notes"] = f"{d['notes']} | {legacy}" if d.get("notes") else legacy
+        d["precision"] = "unknown"
+    return d
+
+
 def _measurement_from_dict(d: dict) -> Measurement:
     d = dict(d)
+    if "runtime" not in d:
+        d = _upgrade_legacy(d)
     d["source"] = Source(d["source"])
     return Measurement(**d)
 
