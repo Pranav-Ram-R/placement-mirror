@@ -1,0 +1,32 @@
+name: arm64-smoke
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: windows-11-arm
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          architecture: arm64
+
+      - name: Print platform
+        shell: python
+        run: |
+          import platform
+          import sys
+          print("platform.machine():", platform.machine())
+          print("sys.version:", sys.version)
+          if platform.machine() != "ARM64":
+              sys.exit("Expected a native ARM64 Python")
+
+      - name: Install pytest
+        run: python -m pip install pytest
+
+      - name: Run schema tests
+        run: python -m pytest tests/test_schema.py -v
