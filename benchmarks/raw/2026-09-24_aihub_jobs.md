@@ -51,6 +51,8 @@ Checkpoint distil-whisper/distil-small.en. The only English-only Whisper variant
 
 Inference job seen at time of logging: jprllnr7p.
 
+Measurements: 2026-09-24_distil_whisper_x_elite.json
+
 ## Void jobs
 
 These were submitted by qai-hub-models 0.48.0, which requested the retired QAIRT 2.42. Do not use them: jgdddzvlg, jp4yy9xlp, jpyoo7445, jp3zzw4z5.
