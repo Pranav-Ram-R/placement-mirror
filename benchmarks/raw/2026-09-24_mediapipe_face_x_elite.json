@@ -1,0 +1,80 @@
+[
+  {
+    "kind": "measurement",
+    "model": "mediapipe_face_float_face_detector",
+    "metric": "estimated_inference_time",
+    "value": 683.0,
+    "unit": "us",
+    "source": "AI Hub hosted Snapdragon X Elite",
+    "compute_unit": "NPU",
+    "precision": "float",
+    "job_id": "jp2rrvw4g",
+    "timestamp": "2026-09-24T18:33:05",
+    "notes": "https://workbench.aihub.qualcomm.com/jobs/jp2rrvw4g/ | ops by compute unit: NPU 145"
+  },
+  {
+    "kind": "measurement",
+    "model": "mediapipe_face_float_face_detector",
+    "metric": "inference_memory_peak_max",
+    "value": 1478656.0,
+    "unit": "bytes",
+    "source": "AI Hub hosted Snapdragon X Elite",
+    "compute_unit": "NPU",
+    "precision": "float",
+    "job_id": "jp2rrvw4g",
+    "timestamp": "2026-09-24T18:33:05",
+    "notes": "https://workbench.aihub.qualcomm.com/jobs/jp2rrvw4g/ | ops by compute unit: NPU 145 | range 1478656-1478656"
+  },
+  {
+    "kind": "measurement",
+    "model": "mediapipe_face_float_face_detector",
+    "metric": "ops_on_NPU",
+    "value": 145.0,
+    "unit": "ops",
+    "source": "AI Hub hosted Snapdragon X Elite",
+    "compute_unit": "NPU",
+    "precision": "float",
+    "job_id": "jp2rrvw4g",
+    "timestamp": "2026-09-24T18:33:05",
+    "notes": "https://workbench.aihub.qualcomm.com/jobs/jp2rrvw4g/ | ops by compute unit: NPU 145"
+  },
+  {
+    "kind": "measurement",
+    "model": "mediapipe_face_float_face_landmark_detector",
+    "metric": "estimated_inference_time",
+    "value": 271.0,
+    "unit": "us",
+    "source": "AI Hub hosted Snapdragon X Elite",
+    "compute_unit": "NPU",
+    "precision": "float",
+    "job_id": "jpyoo7x75",
+    "timestamp": "2026-09-24T18:33:08",
+    "notes": "https://workbench.aihub.qualcomm.com/jobs/jpyoo7x75/ | ops by compute unit: NPU 105"
+  },
+  {
+    "kind": "measurement",
+    "model": "mediapipe_face_float_face_landmark_detector",
+    "metric": "inference_memory_peak_max",
+    "value": 471040.0,
+    "unit": "bytes",
+    "source": "AI Hub hosted Snapdragon X Elite",
+    "compute_unit": "NPU",
+    "precision": "float",
+    "job_id": "jpyoo7x75",
+    "timestamp": "2026-09-24T18:33:08",
+    "notes": "https://workbench.aihub.qualcomm.com/jobs/jpyoo7x75/ | ops by compute unit: NPU 105 | range 471040-471040"
+  },
+  {
+    "kind": "measurement",
+    "model": "mediapipe_face_float_face_landmark_detector",
+    "metric": "ops_on_NPU",
+    "value": 105.0,
+    "unit": "ops",
+    "source": "AI Hub hosted Snapdragon X Elite",
+    "compute_unit": "NPU",
+    "precision": "float",
+    "job_id": "jpyoo7x75",
+    "timestamp": "2026-09-24T18:33:08",
+    "notes": "https://workbench.aihub.qualcomm.com/jobs/jpyoo7x75/ | ops by compute unit: NPU 105"
+  }
+]
