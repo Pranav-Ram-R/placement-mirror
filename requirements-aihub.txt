@@ -1,6 +1,8 @@
 # AI Hub tooling (aihub/ scripts: submit, collect, fetch models). Not app dependencies.
 # Separate venv from the app: qai-hub-models 0.63.0 requires onnxruntime<=1.22.1 and
 # onnxruntime-qnn 2.6.0 requires onnxruntime>=1.24.2, so they cannot share one venv.
-# Pinned to the versions used for the Day 0 to Day 2 jobs.
+# Pinned to the versions used for the Day 0 to Day 2 jobs. torch is pinned because the
+# exported models were traced with 2.10.0 (qai-hub-models alone lets pip pick 2.11.0).
 qai-hub==0.55.0
 qai-hub-models==0.63.0
+torch==2.10.0

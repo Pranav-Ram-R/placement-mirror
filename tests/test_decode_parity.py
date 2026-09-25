@@ -1,6 +1,6 @@
 """Our decode loop on the AI Hub onnx whisper_tiny (CPU) against transformers generate.
 
-Runs where transformers and torch are installed (dev or eval venv) and the models from
+Runs in the eval venv (transformers and torch) when the models from
 aihub.fetch_models are in models/. On a mismatch the assertion message shows both token
 lists and both texts.
 """
@@ -10,8 +10,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-transformers = pytest.importorskip("transformers")
-torch = pytest.importorskip("torch")
+transformers = pytest.importorskip(
+    "transformers", reason="transformers is not installed. The Whisper parity tests run in the eval venv: .venv-eval/Scripts/python -m pytest tests/test_decode_parity.py (see README, Development setup)")
+torch = pytest.importorskip("torch", reason="torch is not installed. Run in the eval venv.")
 
 from app.audio.whisper import Whisper, assets  # noqa: E402
 from app.runtime.runner import MANIFEST, ModelRunner  # noqa: E402

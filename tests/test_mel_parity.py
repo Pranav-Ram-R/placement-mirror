@@ -7,7 +7,8 @@ import pytest
 
 from app.audio.mel import N_FRAMES, log_mel, pad_or_trim
 
-transformers = pytest.importorskip("transformers")
+transformers = pytest.importorskip(
+    "transformers", reason="transformers is not installed. The Whisper parity tests run in the eval venv: .venv-eval/Scripts/python -m pytest tests/test_mel_parity.py (see README, Development setup)")
 
 SR = 16000
 
