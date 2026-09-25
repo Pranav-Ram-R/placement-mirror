@@ -1,10 +1,13 @@
+import enum
 import json
+import sys
+import types
 from pathlib import Path
 
 import numpy as np
 import pytest
 
-from app.runtime.runner import STEP_CPU, STEP_ONNX_QNN, STEP_PRECOMPILED, ModelRunner, QnnBackend
+from app.runtime.runner import QNN_EP, STEP_CPU, STEP_ONNX_QNN, STEP_PRECOMPILED, ModelRunner, QnnBackend
 from ci.check_deps import build_add_model
 
 A = np.arange(4, dtype=np.float32).reshape(1, 4)
@@ -142,3 +145,66 @@ def test_status_is_json_serializable(tmp_path):
     runner.load("m1")
     status = json.loads(json.dumps(runner.status()))
     assert status["m1"]["compute_unit"] == "CPU" and "No QNN devices listed" in status["m1"]["reason"]
+
+
+class OrtHardwareDeviceType(enum.Enum):
+    """Mirrors how onnxruntime prints a device type, for example OrtHardwareDeviceType.CPU."""
+    CPU = 0
+    GPU = 1
+    NPU = 2
+
+
+class FakeEpDevice:
+    def __init__(self, ep_name, hw_type):
+        self.ep_name = ep_name
+        self.device = types.SimpleNamespace(type=OrtHardwareDeviceType[hw_type])
+
+
+class FakeOrt:
+    """Plugin EP API surface that QnnBackend uses, with a fixed get_ep_devices() listing."""
+
+    __version__ = "fake"
+
+    def __init__(self, devices):
+        self._devices = devices
+        self.registered = []
+
+    def register_execution_provider_library(self, name, path):
+        self.registered.append((name, path))
+
+    def get_ep_devices(self):
+        return list(self._devices)
+
+
+def fake_qnn_package(monkeypatch):
+    module = types.ModuleType("onnxruntime_qnn")
+    module.get_library_path = lambda: "fake/onnxruntime_providers_qnn.dll"
+    module.get_qnn_htp_path = lambda: "fake/QnnHtp.dll"
+    monkeypatch.setitem(sys.modules, "onnxruntime_qnn", module)
+
+
+def test_qnn_device_of_cpu_type_is_never_reported_as_npu(tmp_path, monkeypatch):
+    # What onnxruntime-qnn 2.6.0 lists on the x86 dev laptop: QNN on a CPU-type device.
+    fake_qnn_package(monkeypatch)
+    ort = FakeOrt([FakeEpDevice("CPUExecutionProvider", "CPU"), FakeEpDevice(QNN_EP, "CPU")])
+    backend = QnnBackend(ort)
+    assert ort.registered == [(QNN_EP, "fake/onnxruntime_providers_qnn.dll")]
+    assert backend.listing == ["CPUExecutionProvider on CPU", "QNNExecutionProvider on CPU"]
+    assert not backend.available and backend.devices == []
+    assert backend.reason == "No QNN NPU device listed (QNN lists CPU)"
+
+    runner = ModelRunner(make_manifest(tmp_path, names=("a", "b")), qnn=backend, cache_dir=tmp_path / "cache")
+    for name in runner.names():
+        st = runner.load(name)
+        assert st.compute_unit == "CPU" and st.path == STEP_CPU
+        assert not any(a.ok for a in st.attempts if a.step != STEP_CPU)
+    status = runner.status()
+    assert all(s["compute_unit"] == "CPU" for s in status.values())
+    assert "NPU" not in {s["compute_unit"] for s in status.values()}
+
+
+def test_only_npu_type_qnn_devices_are_kept(monkeypatch):
+    fake_qnn_package(monkeypatch)
+    npu = FakeEpDevice(QNN_EP, "NPU")
+    backend = QnnBackend(FakeOrt([FakeEpDevice(QNN_EP, "CPU"), FakeEpDevice(QNN_EP, "GPU"), npu]))
+    assert backend.available and backend.devices == [npu] and backend.reason is None
