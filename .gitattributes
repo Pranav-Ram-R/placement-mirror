@@ -1,0 +1,3 @@
+# Generated files compared byte for byte in CI (build-arm64.yml)
+THIRD_PARTY_LICENSES.md text eol=lf
+packaging/models-v1.sha256 text eol=lf

@@ -60,6 +60,12 @@ from app.vision.roi import (
 )
 
 VISION_MODELS = ("face_detector", "face_landmark", "pose_detector", "pose_landmark")
+MODE_LABELS = {"npu": "NPU mode", "cpu_fallback": "CPU fallback mode, reduced frame rate"}
+
+
+def vision_mode(status: dict) -> str:
+    """npu when every vision model runs on the NPU (ModelRunner.status()), cpu_fallback otherwise."""
+    return "npu" if all(status.get(n, {}).get("compute_unit") == "NPU" for n in VISION_MODELS) else "cpu_fallback"
 
 # Binary frame message, little endian:
 #   magic b"PMF1", frame_id uint32, capture_ms float64 (browser performance.now()),
@@ -267,9 +273,8 @@ class VisionPipeline:
         self.emit = emit
         self.cfg = cfg
         self.priority = priority or AsrPriority()
-        status = runner.status()
-        on_npu = all(status.get(n, {}).get("compute_unit") == "NPU" for n in VISION_MODELS)
-        self.mode = "npu" if on_npu else "cpu_fallback"
+        self.mode = vision_mode(runner.status())
+        on_npu = self.mode == "npu"
         self.face_max_fps = cfg.npu_face_max_fps if on_npu else cfg.cpu_face_max_fps
         self.pose_fps = cfg.npu_pose_fps if on_npu else cfg.cpu_pose_fps
         self._last_accepted = float("-inf")
@@ -299,8 +304,7 @@ class VisionPipeline:
     # ------------------------------------------------------------------ session control
 
     def mode_event(self) -> dict:
-        label = "NPU mode" if self.mode == "npu" else "CPU fallback mode, reduced frame rate"
-        return {"type": "mode", "mode": self.mode, "label": label, "face_max_fps": self.face_max_fps,
+        return {"type": "mode", "mode": self.mode, "label": MODE_LABELS[self.mode], "face_max_fps": self.face_max_fps,
                 "pose_fps": self.pose_fps}
 
     def start(self) -> None:

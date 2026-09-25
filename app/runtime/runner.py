@@ -38,10 +38,13 @@ from typing import Any
 import numpy as np
 
 from app.config import RUNTIME, RuntimeConfig
+from app.storage import paths
 
-REPO = Path(__file__).resolve().parents[2]
+REPO = Path(__file__).resolve().parents[2]  # in the packaged app, its _internal folder
 MANIFEST = REPO / "models" / "manifest.json"
-CACHE_DIR = REPO / "models" / "ep_context_cache"
+# The packaged app can sit in a read-only folder, so it keeps the EP context cache with the
+# user's data (%LOCALAPPDATA%\PlacementMirror).
+CACHE_DIR = (paths.data_root() if getattr(sys, "frozen", False) else REPO / "models") / "ep_context_cache"
 QNN_EP = "QNNExecutionProvider"
 STRICT = {"session.disable_cpu_ep_fallback": "1"}
 STEP_PRECOMPILED = "precompiled_qnn_onnx on QNN NPU"

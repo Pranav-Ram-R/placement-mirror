@@ -1,0 +1,96 @@
+name: build-arm64
+
+# Packaged app for Windows ARM64: PyInstaller one-folder build, models from the models-v1
+# release asset, smoke test, zip uploaded as a workflow artifact. This workflow never
+# creates a release.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "questions/**"
+      - "packaging/**"
+      - "tools/build_app.py"
+      - "tools/fetch_models.py"
+      - "tools/package_models.py"
+      - "tools/smoke_test.py"
+      - "tools/third_party_licenses.py"
+      - "requirements.txt"
+      - "requirements-build.txt"
+      - "THIRD_PARTY_LICENSES.md"
+      - ".github/workflows/build-arm64.yml"
+
+jobs:
+  build:
+    runs-on: windows-11-arm
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          architecture: arm64
+
+      - name: Check for native ARM64 Python
+        shell: python
+        run: |
+          import platform
+          import sys
+          print("platform.machine():", platform.machine(), "sys.version:", sys.version)
+          if platform.machine() != "ARM64":
+              sys.exit("Expected a native ARM64 Python")
+
+      - name: Install app and build requirements
+        run: |
+          python -m venv .venv-build
+          .venv-build\Scripts\python -m pip install --no-input -r requirements.txt -r requirements-build.txt
+          .venv-build\Scripts\python -m pip freeze
+
+      - name: Build with PyInstaller
+        run: .venv-build\Scripts\python tools/build_app.py
+
+      - name: Upload the generated THIRD_PARTY_LICENSES.md
+        uses: actions/upload-artifact@v7
+        with:
+          name: third-party-licenses
+          path: dist/PlacementMirror/THIRD_PARTY_LICENSES.md
+          if-no-files-found: error
+
+      - name: Download models-v1 (release asset, sha256 checked)
+        run: .venv-build\Scripts\python tools/fetch_models.py --dest dist\PlacementMirror\_internal
+
+      - name: Smoke test (start, /health reports CPU fallback mode, clean shutdown)
+        run: .venv-build\Scripts\python tools/smoke_test.py dist\PlacementMirror\PlacementMirror.exe --expect-mode "CPU fallback mode"
+
+      - name: Zip the app
+        shell: pwsh
+        run: |
+          Compress-Archive -Path dist\PlacementMirror -DestinationPath dist\PlacementMirror-win-arm64.zip -CompressionLevel Optimal
+          $zip = Get-Item dist\PlacementMirror-win-arm64.zip
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash
+          $folder = (Get-ChildItem dist\PlacementMirror -Recurse -File | Measure-Object -Sum Length).Sum
+          $line = "PlacementMirror-win-arm64.zip: $($zip.Length) bytes, sha256 $hash. App folder: $folder bytes."
+          Write-Output $line
+          $line | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
+
+      - name: Upload the app zip
+        uses: actions/upload-artifact@v7
+        with:
+          name: PlacementMirror-win-arm64
+          path: dist/PlacementMirror-win-arm64.zip
+          compression-level: 0
+          if-no-files-found: error
+
+      - name: THIRD_PARTY_LICENSES.md in the repository matches this build
+        if: always()
+        shell: pwsh
+        run: |
+          if (-not (Test-Path dist\PlacementMirror\THIRD_PARTY_LICENSES.md)) { exit 1 }
+          git diff --no-index --stat THIRD_PARTY_LICENSES.md dist\PlacementMirror\THIRD_PARTY_LICENSES.md
+          if ($LASTEXITCODE -ne 0) {
+            Write-Output "The repository copy differs from this build's. Replace it with the third-party-licenses artifact."
+            exit 1
+          }

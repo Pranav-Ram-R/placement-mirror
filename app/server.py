@@ -1,6 +1,8 @@
 """Local web server: serves the UI and runs one interview session per WebSocket.
 
 - GET /               the UI in app/ui/static/
+- GET /health         "ok", the mode (NPU mode or CPU fallback mode) and each model's compute
+                      unit, for the launcher and the CI smoke test
 - GET /api/status     ModelRunner.status(): the real compute unit and load path per model
 - GET /api/questions  the question bank (questions/bank.json)
 - GET /api/config     replay mode settings for the browser
@@ -63,7 +65,7 @@ from app.runtime.runner import CPU_ONLY, ModelRunner
 from app.session.controller import SessionController
 from app.session.questions import default_bank
 from app.storage import history, recordings
-from app.vision.pipeline import VISION_MODELS, VisionPipeline
+from app.vision.pipeline import MODE_LABELS, VISION_MODELS, VisionPipeline, vision_mode
 
 STATIC = Path(__file__).resolve().parent / "ui" / "static"
 SETTINGS = {"stats_dir": None, "label": "", "audio_file": None, "audio": True, "replay": None, "data_dir": None,
@@ -101,6 +103,15 @@ async def lifespan(_app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+
+@app.get("/health")
+def health() -> JSONResponse:
+    status = STATE["runner"].status()
+    mode = vision_mode(status)
+    return JSONResponse({"status": "ok", "mode": mode, "mode_label": MODE_LABELS[mode],
+                         "compute_units": {n: s["compute_unit"] for n, s in status.items()},
+                         "notice": cpu_fallback_notice(status)})
 
 
 @app.get("/api/status")
@@ -412,7 +423,7 @@ async def session(ws: WebSocket) -> None:
 app.mount("/", StaticFiles(directory=STATIC, html=True), name="ui")
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     import uvicorn
 
     ap = argparse.ArgumentParser()
@@ -426,7 +437,7 @@ def main() -> int:
     ap.add_argument("--data-dir", type=Path, help="session data folder (default %%LOCALAPPDATA%%\\PlacementMirror)")
     ap.add_argument("--record-eval", action="store_true",
                     help="development: save each answer's camera WebM and microphone WAV to eval/recordings")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
     if args.record_eval and (args.replay or args.audio_file or args.no_audio):
         raise SystemExit("--record-eval records the camera and the microphone, so it cannot be combined with "
                          "--replay, --audio-file or --no-audio")
