@@ -31,6 +31,7 @@ PACKAGES = {
     "sounddevice": "sounddevice",
     "fastapi": "fastapi",
     "uvicorn": "uvicorn",
+    "wsproto": "wsproto",
     "pyinstaller": "PyInstaller",
     "onnx": "onnx",
 }

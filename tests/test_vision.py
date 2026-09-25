@@ -7,9 +7,13 @@ from app.vision.roi import (
     apply_affine,
     crop_affine,
     invert_affine,
+    keypoint_roi_corners,
     letterbox_affine,
+    pad_border,
     roi_corners,
     warp_affine_bilinear,
+    warp_padded,
+    warp_reference,
 )
 
 
@@ -95,3 +99,50 @@ def test_warp_matches_cv2_warp_affine():
     assert diff[interior].max() < 0.5
     assert diff.max() < smooth.max() / 32 + 0.5
     assert diff.mean() < 0.1
+
+
+WARP_CASES = {
+    "face roi inside": (roi_corners([250, 150, 400, 330], [290, 210], [360, 200], 1.1), 192),
+    "face roi past the bottom right": (roi_corners([500, 380, 700, 560], [540, 440], [610, 430], 1.1), 192),
+    "face roi past the left edge": (roi_corners([-80, 100, 90, 280], [-20, 160], [50, 150], 1.1), 192),
+    "roi fully outside": (roi_corners([-900, -900, -700, -700], [-850, -850], [-750, -860], 1.1), 64),
+    "pose roi": (keypoint_roi_corners([320, 400], [300, 120], 1.5, np.pi / 2), 256),
+}
+
+
+@pytest.mark.parametrize("case", list(WARP_CASES))
+@pytest.mark.parametrize("border", [0.0, 7.0, 12.5])
+@pytest.mark.parametrize("dtype", [np.uint8, np.float32])
+def test_vectorized_warp_matches_reference(case, border, dtype):
+    frame = np.random.default_rng(3).integers(0, 256, (480, 640, 3)).astype(dtype)
+    corners, size = WARP_CASES[case]
+    m = crop_affine(corners, size, size)
+    ours = warp_affine_bilinear(frame, m, size, size, border)
+    ref = warp_reference(frame, m, size, size, border)
+    assert ours.shape == ref.shape == (size, size, 3) and ours.dtype == np.float32
+    assert np.abs(ours - ref).max() < 1e-3
+
+
+def test_vectorized_warp_identity_letterbox_and_one_padded_frame_for_two_crops():
+    frame = np.random.default_rng(4).integers(0, 256, (480, 640, 3), dtype=np.uint8)
+    ident = np.array([[1.0, 0, 0], [0, 1.0, 0]])
+    assert np.array_equal(warp_affine_bilinear(frame, ident, 640, 480), frame.astype(np.float32))
+    m_lb = letterbox_affine(640, 480, 256, 256)[0]
+    assert np.abs(warp_affine_bilinear(frame, m_lb, 256, 256) - warp_reference(frame, m_lb, 256, 256)).max() < 1e-3
+    padded = pad_border(frame)
+    assert padded.dtype == np.uint8 and padded.shape == (482, 642, 3)
+    for corners, size in WARP_CASES.values():
+        m = crop_affine(corners, size, size)
+        assert np.array_equal(warp_padded(padded, m, size, size), warp_affine_bilinear(frame, m, size, size))
+
+
+def test_vectorized_warp_output_is_planar_for_nchw():
+    frame = np.random.default_rng(5).integers(0, 256, (480, 640, 3), dtype=np.uint8)
+    out = warp_affine_bilinear(frame, crop_affine(*WARP_CASES["face roi inside"][:1], 192, 192), 192, 192)
+    assert out.transpose(2, 0, 1).flags.c_contiguous
+
+
+def test_keypoint_roi_is_square_centered_and_upright_for_a_vertical_body():
+    corners = keypoint_roi_corners([320, 400], [320, 200], 1.5, np.pi / 2)
+    assert np.allclose(corners.mean(axis=0), [320, 400])
+    assert np.allclose(corners, [[20, 100], [20, 700], [620, 100], [620, 700]])

@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Placement Mirror</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Placement Mirror</h1>
+  <p id="connection" role="status">Not connected</p>
+</header>
+
+<p id="notice" class="notice" role="alert" hidden></p>
+<p id="error" class="error" role="alert" hidden></p>
+
+<main>
+  <section aria-labelledby="camera-heading">
+    <h2 id="camera-heading">Camera</h2>
+    <video id="preview" autoplay muted playsinline width="640" height="480"></video>
+    <p>
+      <button type="button" id="start">Start camera</button>
+      <button type="button" id="calibrate" disabled>Calibrate</button>
+      <button type="button" id="stop" disabled>Stop</button>
+    </p>
+    <p id="calibration-help">Sit as you would in the interview, look at the camera and press Calibrate. Calibration takes 3 seconds.</p>
+  </section>
+
+  <section aria-labelledby="indicators-heading">
+    <h2 id="indicators-heading">Live indicators</h2>
+    <dl class="indicators">
+      <div><dt>Facing camera</dt><dd id="facing" data-state="unknown">Not calibrated</dd></div>
+      <div><dt>Posture</dt><dd id="posture" data-state="unknown">Not calibrated</dd></div>
+      <div><dt>Calibration</dt><dd id="calibration">Not calibrated</dd></div>
+      <div><dt>Sent fps</dt><dd id="sent-fps">0</dd></div>
+      <div><dt>Processed fps</dt><dd id="processed-fps">0</dd></div>
+      <div><dt>Frames dropped in browser</dt><dd id="dropped">0</dd></div>
+    </dl>
+    <details>
+      <summary>Details</summary>
+      <dl class="details">
+        <div><dt>Face</dt><dd id="face-detail">none</dd></div>
+        <div><dt>Pose</dt><dd id="pose-detail">none</dd></div>
+        <div><dt>Server latency</dt><dd id="latency">none</dd></div>
+      </dl>
+    </details>
+  </section>
+
+  <section aria-labelledby="models-heading">
+    <h2 id="models-heading">Where each model runs</h2>
+    <table>
+      <thead>
+        <tr><th scope="col">Model</th><th scope="col">Compute unit</th><th scope="col">Load path</th><th scope="col">Why earlier steps were not used</th></tr>
+      </thead>
+      <tbody id="models"></tbody>
+    </table>
+  </section>
+
+  <section aria-labelledby="stats-heading" id="stats-section" hidden>
+    <h2 id="stats-heading">Session timings</h2>
+    <p id="stats-summary"></p>
+    <table>
+      <thead><tr><th scope="col">Stage</th><th scope="col">Count</th><th scope="col">p50 ms</th><th scope="col">p95 ms</th></tr></thead>
+      <tbody id="stats"></tbody>
+    </table>
+  </section>
+</main>
+
+<canvas id="frame-canvas" width="640" height="480" hidden></canvas>
+<canvas id="face-canvas" width="256" height="256" hidden></canvas>
+<canvas id="pose-canvas" width="128" height="128" hidden></canvas>
+<script src="app.js"></script>
+</body>
+</html>

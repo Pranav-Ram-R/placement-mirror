@@ -30,6 +30,15 @@ py -3.11 -m venv .venv-app
 The runner check needs the model files, which come from the AI Hub environment below.
 For tests, also install pytest in this venv and run `.venv-app\Scripts\python -m pytest`.
 
+To run the app, start the server and open http://127.0.0.1:8000 in Edge:
+
+```powershell
+.venv-app\Scripts\python -m app.server
+```
+
+Press Start camera, then Calibrate while sitting as in an interview and looking at the
+camera. With `--stats-dir <dir>` each session's per stage p50 and p95 are saved there.
+
 ### AI Hub tools
 
 Needs an AI Hub API token, configured once with `qai-hub configure --api_token <token>`.

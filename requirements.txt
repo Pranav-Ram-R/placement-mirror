@@ -8,3 +8,7 @@ onnxruntime-qnn==2.6.0
 fastapi==0.141.1
 uvicorn==0.53.0
 sounddevice==0.5.6
+# WebSocket protocol for uvicorn (Task G). Pure Python wheel wsproto-1.3.2-py3-none-any,
+# its one dependency h11 0.16.0 is also py3-none-any. Checked with pip download
+# --platform win_arm64 --python-version 3.11 on 2026-09-25, and added to ci/check_deps.py.
+wsproto==1.3.2
