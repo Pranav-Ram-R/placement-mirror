@@ -6,7 +6,7 @@ drained on stop, so the last segment is transcribed before the timeline is built
 
 The saved timeline (sessions_dir/<session id>/timeline.json) covers the answer only:
 - frames: every processed video frame between start and stop, with time from answer
-  start, facing camera, yaw, pitch, slouching and leaning
+  start, face (facing, not_facing or not_visible), yaw, pitch, slouching and leaning
 - segments: every speech segment, with start, end, text, fillers and word count
 - pauses: pause intervals from the VAD pause events
 The report (report.json in the same folder, app.analysis.report) is built from it.
@@ -22,7 +22,7 @@ import time
 from pathlib import Path
 from typing import Callable
 
-from app.analysis.report import build_report
+from app.analysis.report import build_report, face_state
 from app.config import AUDIO, SESSION, VISION, SessionConfig, VisionConfig
 from app.runtime.priority import AsrPriority
 from app.session.machine import InvalidTransition, SessionMachine, State
@@ -30,7 +30,9 @@ from app.session.questions import default_bank, find_question
 from app.storage import history, paths
 from app.vision.pipeline import VisionPipeline
 
-TIMELINE_SCHEMA = "placement-mirror timeline v1"
+# v2: frames carry face ("facing", "not_facing" or "not_visible") instead of v1's facing
+# (true, false or null).
+TIMELINE_SCHEMA = "placement-mirror timeline v2"
 
 
 class SessionController:
@@ -184,7 +186,7 @@ class SessionController:
         a = self.answer
         start, end = a["start_mono"], a["end_mono"]
         rel = lambda t: round(t - start, 4)  # noqa: E731
-        frames = [{"t": rel(f["t"]), "frame_id": f["frame_id"], "face_state": f["face_state"], "facing": f["facing"],
+        frames = [{"t": rel(f["t"]), "frame_id": f["frame_id"], "face_state": f["face_state"], "face": face_state(f["facing"]),
                    "yaw": f["yaw"], "pitch": f["pitch"], "slouching": f["slouching"], "leaning": f["leaning"],
                    "pose_updated": f["pose_updated"]}
                   for f in list(self.vision.frame_log) if start <= f["t"] <= end]

@@ -74,6 +74,8 @@ function renderSummary(r) {
   const o = r.overall;
   const dl = $("summary");
   addPair(dl, "Facing the camera", `${fixed(o.facing_camera_pct)}% of ${o.frames} video frames`);
+  addPair(dl, "Not facing the camera", `${fixed(o.not_facing_pct)}% of video frames`);
+  addPair(dl, "Face not visible", `${fixed(o.face_not_visible_pct)}% of video frames`);
   if (o.slouching_pct === null) {
     addPair(dl, "Posture", "not measured (shoulders were not seen at calibration or during the answer)");
   } else {
@@ -105,22 +107,33 @@ function range(values, unit) {
 }
 
 function guideSentence(g) {
-  return g ? ` Coaching guideline, not a measurement: ${g.text}.` : "";
+  return g ? ` Coaching guideline for ${g.label.toLowerCase()}, not a measurement: ${g.text}.` : "";
 }
 
 function renderFacing(r) {
   const values = r.windows.map((w) => w.facing_camera_pct);
+  const hidden = r.windows.map((w) => w.face_not_visible_pct);
   const g = guideFor(r, "facing_camera_pct");
-  const series = [{ name: "Facing the camera", cls: "series-a", marker: "circle",
-    points: r.windows.map((w) => ({ x0: w.start, x1: w.end, y: w.facing_camera_pct })) }];
+  const gHidden = guideFor(r, "face_not_visible_pct");
+  const series = [
+    { name: "Facing the camera", cls: "series-a", marker: "circle",
+      points: r.windows.map((w) => ({ x0: w.start, x1: w.end, y: w.facing_camera_pct })) },
+    { name: "Face not visible", cls: "series-c", marker: "square",
+      points: r.windows.map((w) => ({ x0: w.start, x1: w.end, y: w.face_not_visible_pct })) },
+  ];
   const box = $("facing-chart");
   box.append(drawChart({
-    label: `Step chart of the share of video frames facing the camera per ${r.window_s} second window, ` +
-      `${range(values, "%")}.${guideSentence(g)} The table below lists every window.`,
-    kind: "step", x: windowTicks(r), y: { max: 100, step: 20, title: "% of frames" }, series, guide: g,
+    label: `Step chart per ${r.window_s} second window of the share of video frames facing the camera, ` +
+      `${range(values, "%")}, and with the face not visible, ${range(hidden, "%")}.${guideSentence(g)}` +
+      `${guideSentence(gHidden)} The table below lists every window.`,
+    kind: "step", x: windowTicks(r), y: { max: 100, step: 20, title: "% of frames" }, series,
+    guide: [g, gHidden].filter(Boolean),
   }));
-  box.append(dataTable(`Facing the camera per ${r.window_s} s window`, ["Window", "Facing the camera %", "Frames"],
-    r.windows.map((w) => [windowName(w), fixed(w.facing_camera_pct), String(w.frames)])));
+  box.append(chartLegend(series));
+  box.append(dataTable(`Face per ${r.window_s} s window`,
+    ["Window", "Facing the camera %", "Not facing %", "Face not visible %", "Frames"],
+    r.windows.map((w) => [windowName(w), fixed(w.facing_camera_pct), fixed(w.not_facing_pct),
+      fixed(w.face_not_visible_pct), String(w.frames)])));
 }
 
 function renderPosture(r) {
@@ -146,7 +159,7 @@ function renderPosture(r) {
       `${range(r.windows.map((w) => w.leaning_pct), "%")}.${sameGuide ? guideSentence(g) : ""} ` +
       "The table below lists every window.",
     kind: "step", x: windowTicks(r), y: { max: 100, step: 20, title: "% of frames" }, series,
-    guide: sameGuide ? g : null,
+    guide: sameGuide ? { ...g, label: "Slouching and leaning" } : null,
   }));
   box.append(chartLegend(series));
   box.append(dataTable(`Posture flags per ${r.window_s} s window`,

@@ -164,6 +164,7 @@ class ReportConfig:
     # targets, not measurements. PROVISIONAL: chosen by the developer, need author review.
     guidelines: tuple = (
         Guideline("facing_camera_pct", "Facing the camera", "% of the answer", low=70.0),
+        Guideline("face_not_visible_pct", "Face not visible", "% of the answer", high=10.0),
         Guideline("slouching_pct", "Slouching", "% of the answer", high=10.0),
         Guideline("leaning_pct", "Leaning", "% of the answer", high=10.0),
         Guideline("wpm", "Speaking pace", "words per minute", low=120.0, high=160.0),

@@ -43,8 +43,8 @@ only during the answer. Each answer is saved as `timeline.json` and `report.json
 `%LOCALAPPDATA%\PlacementMirror\sessions\<session id>\` (metrics and transcript text
 only, never audio or video). `--data-dir <dir>` moves that folder.
 
-After an answer, Open the report shows facing the camera, posture and words per minute per
-10 s window as charts with data tables, the transcript with fillers highlighted and long
+After an answer, Open the report shows facing the camera, face not visible, posture and words
+per minute per 10 s window as charts with data tables, the transcript with fillers highlighted and long
 pauses inline, and three things to work on. Each metric is compared with a coaching
 guideline in `app/config.py` (`ReportConfig`). The guidelines are coaching targets, not
 measurements, and are provisional until reviewed. The History page lists every saved answer

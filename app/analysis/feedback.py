@@ -27,6 +27,8 @@ IMPROVEMENTS = 3
 ACTIONS = {
     ("facing_camera_pct", "low"): "Put the interview window right below the camera and look at the lens at the "
                                   "start and end of each point.",
+    ("face_not_visible_pct", "high"): "Check the lighting and framing. Sit facing a light source and keep your "
+                                      "whole face inside the camera view.",
     ("slouching_pct", "high"): "Sit back against the chair with both feet flat and raise the screen so your head "
                                "stays level.",
     ("leaning_pct", "high"): "Keep both shoulders level. Rest both forearms on the desk instead of leaning on one "

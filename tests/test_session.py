@@ -136,8 +136,8 @@ def test_full_session_saves_a_timeline_covering_the_whole_answer(tmp_path):
     assert tl["answer"]["stopped_by"] == "user" and tl["answer"]["duration_s"] == pytest.approx(9.95)
     frames = tl["frames"]
     assert len(frames) == 100 and frames[0]["t"] == 0.0 and frames[-1]["t"] == pytest.approx(9.9)
-    assert set(frames[0]) >= {"t", "facing", "yaw", "pitch", "slouching", "leaning"}
-    assert all(f["facing"] is True for f in frames)  # the fake face looks at the camera
+    assert set(frames[0]) >= {"t", "face", "yaw", "pitch", "slouching", "leaning"}
+    assert all(f["face"] == "facing" for f in frames)  # the fake face looks at the camera
     assert [(s["start"], s["end"], s["word_count"]) for s in tl["segments"]] == [(0.5, 2.0, 5), (5.0, 7.5, 3)]
     assert tl["segments"][0]["fillers"] == ["Um"] and tl["segments"][0]["text"] == " Um, I am a student."
     assert tl["pauses"][0] == {"start": 2.0, "end": 5.0, "duration_s": 3.0}
@@ -147,7 +147,8 @@ def test_full_session_saves_a_timeline_covering_the_whole_answer(tmp_path):
     # the report is saved next to the timeline and named in the event
     assert report_event["report_id"] == tl["session_id"] == c.last_report.parent.name
     report = json.loads(c.last_report.read_text(encoding="utf-8"))
-    assert report["overall"]["facing_camera_pct"] == 100.0 and report["overall"]["words"] == 8
+    assert report["overall"]["facing_camera_pct"] == 100.0 and report["overall"]["face_not_visible_pct"] == 0.0
+    assert report["overall"]["words"] == 8
     assert report["overall"]["filler_count"] == 1 and report["overall"]["long_pause_count"] == 1
     assert len(report["feedback"]["improvements"]) == 3
 

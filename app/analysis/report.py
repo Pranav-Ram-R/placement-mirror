@@ -1,8 +1,9 @@
 """The answer report, computed from the saved timeline (app.session.controller).
 
 Definitions (times are seconds from answer start):
-- Facing camera %: frames where the face was toward the camera / all frames. A frame
-  with no face found counts as not facing the camera.
+- Face per frame, three states: facing, not_facing (face found, turned away) and
+  not_visible (no face found). Facing camera % = facing frames / all frames. Not facing %
+  and face not visible % are reported separately, over all frames too.
 - Slouching % and leaning %: frames with the flag set / frames with a posture result.
   Frames without one (shoulders not seen, or posture not calibrated) are left out.
 - WPM: words / time * 60. Overall uses the whole answer length. A segment's words are
@@ -25,7 +26,20 @@ from app.analysis.feedback import build_feedback, content_feedback, guideline_di
 from app.analysis.live import FILLER_RE, WORD_RE
 from app.config import REPORT, ReportConfig
 
-REPORT_SCHEMA = "placement-mirror report v1"
+# v2: face states (facing, not facing, face not visible). A saved v1 report is rebuilt from
+# its timeline when read (app.storage.history).
+REPORT_SCHEMA = "placement-mirror report v2"
+FACE_STATES = ("facing", "not_facing", "not_visible")
+
+
+def face_state(facing: bool | None) -> str:
+    """The vision pipeline's facing flag as a face state. None means no face was found."""
+    return "facing" if facing is True else "not_facing" if facing is False else "not_visible"
+
+
+def frame_face(frame: dict) -> str:
+    # v2 timelines carry face. v1 timelines carry facing: true, false or null (no face).
+    return frame["face"] if "face" in frame else face_state(frame.get("facing"))
 
 
 def pct(part: int, whole: int) -> float | None:
@@ -97,14 +111,14 @@ def build_report(timeline: dict, cfg: ReportConfig = REPORT) -> dict:
     has_audio = timeline["audio_source"] is not None
 
     # vision, per window and overall
-    rows = [{"start": a, "end": b, "frames": 0, "facing": 0, "posture_frames": 0, "slouching": 0, "leaning": 0,
-             "words": 0} for a, b in windows]
+    rows = [{"start": a, "end": b, "frames": 0, **{s: 0 for s in FACE_STATES}, "posture_frames": 0, "slouching": 0,
+             "leaning": 0, "words": 0} for a, b in windows]
     for f in frames:
         if not rows:
             break
         r = rows[window_index(f["t"], windows)]
         r["frames"] += 1
-        r["facing"] += f["facing"] is True
+        r[frame_face(f)] += 1
         if f["slouching"] is not None:
             r["posture_frames"] += 1
             r["slouching"] += f["slouching"] is True
@@ -133,7 +147,9 @@ def build_report(timeline: dict, cfg: ReportConfig = REPORT) -> dict:
     overall = {
         "duration_s": duration,
         "frames": len(frames),
-        "facing_camera_pct": pct(sum(f["facing"] is True for f in frames), len(frames)),
+        "facing_camera_pct": pct(total("facing"), len(frames)),
+        "not_facing_pct": pct(total("not_facing"), len(frames)),
+        "face_not_visible_pct": pct(total("not_visible"), len(frames)),
         "posture_frames": total("posture_frames"),
         "slouching_pct": pct(total("slouching"), total("posture_frames")),
         "leaning_pct": pct(total("leaning"), total("posture_frames")),
@@ -146,7 +162,9 @@ def build_report(timeline: dict, cfg: ReportConfig = REPORT) -> dict:
         "long_pauses_per_min": per_min(len(long_pauses), duration) if has_audio else None,
     }
     window_rows = [{"start": r["start"], "end": r["end"], "frames": r["frames"],
-                    "facing_camera_pct": pct(r["facing"], r["frames"]), "posture_frames": r["posture_frames"],
+                    "facing_camera_pct": pct(r["facing"], r["frames"]),
+                    "not_facing_pct": pct(r["not_facing"], r["frames"]),
+                    "face_not_visible_pct": pct(r["not_visible"], r["frames"]), "posture_frames": r["posture_frames"],
                     "slouching_pct": pct(r["slouching"], r["posture_frames"]),
                     "leaning_pct": pct(r["leaning"], r["posture_frames"]), "words": r["words"],
                     "wpm": per_min(r["words"], r["end"] - r["start"]) if has_audio else None}

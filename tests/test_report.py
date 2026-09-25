@@ -3,7 +3,7 @@ import json
 import pytest
 
 from app.analysis.feedback import build_feedback
-from app.analysis.report import REPORT_SCHEMA, build_report, make_windows
+from app.analysis.report import REPORT_SCHEMA, build_report, face_state, make_windows
 from app.config import GUIDELINE_KIND
 from app.storage import history
 
@@ -11,10 +11,11 @@ SEG0 = " Um, I think the answer is uh yes."
 SEG1 = " Hmm, hardware design is fun and I like testing it."
 
 
-def make_timeline(session_id="2026-09-25_120000_t-1", duration=25.0, audio=True, pose=True):
+def make_timeline(session_id="2026-09-25_120000_t-1", duration=25.0, audio=True, pose=True, v1=False):
     """A 25 s answer with 50 frames, 0.5 s apart.
 
-    face: facing for t < 10, every other frame facing for 10 <= t < 20, no face after 20
+    face: facing for t < 10, every other frame facing for 10 <= t < 20 (the others not
+    facing), not visible (no face) after 20. v1=True writes the v1 facing field instead.
     posture (none before t = 5): slouching for 10 <= t < 15, leaning for t >= 22.5
     speech: 8 words (Um, uh) from 1 to 4 s, 10 words (Hmm) from 12 to 20 s
     pauses: 4 to 12 s, and a silence from 20 s still running at the stop
@@ -25,7 +26,8 @@ def make_timeline(session_id="2026-09-25_120000_t-1", duration=25.0, audio=True,
         facing = True if t < 10 else (i % 2 == 0) if t < 20 else None
         has_pose = pose and t >= 5
         frames.append({"t": t, "frame_id": i, "face_state": "no face" if facing is None else "tracking",
-                       "facing": facing, "yaw": None if facing is None else 0.0,
+                       **({"facing": facing} if v1 else {"face": face_state(facing)}),
+                       "yaw": None if facing is None else 0.0,
                        "pitch": None if facing is None else 0.0, "pose_updated": True,
                        "slouching": (10 <= t < 15) if has_pose else None,
                        "leaning": (t >= 22.5) if has_pose else None})
@@ -38,7 +40,7 @@ def make_timeline(session_id="2026-09-25_120000_t-1", duration=25.0, audio=True,
     pauses = [{"start": 4.0, "end": 12.0, "duration_s": 8.0},
               {"start": 20.0, "end": 25.0, "duration_s": 5.0, "open_at_stop": True}] if audio else []
     return {
-        "schema": "placement-mirror timeline v1", "session_id": session_id,
+        "schema": f"placement-mirror timeline v{1 if v1 else 2}", "session_id": session_id,
         "question": {"id": "t-1", "category": "hr", "text": "Tell me about yourself.", "type": "behavioral",
                      "suggested_time_s": 30},
         "answer": {"started": "2026-09-25T12:00:00", "duration_s": duration, "limit_s": 90, "stopped_by": "user"},
@@ -71,8 +73,9 @@ def test_report_metrics_match_the_timeline(tmp_path):
     r = load_via_json(tmp_path, make_timeline())
     assert r["schema"] == REPORT_SCHEMA
     o = r["overall"]
-    # facing: 20 + 10 of 50 frames. Frames without a face count as not facing.
+    # face: 30 of 50 frames facing, 10 not facing, 10 not visible
     assert o["frames"] == 50 and o["facing_camera_pct"] == 60.0
+    assert o["not_facing_pct"] == 20.0 and o["face_not_visible_pct"] == 20.0
     # posture: 40 frames with a posture result, 10 slouching, 5 leaning
     assert o["posture_frames"] == 40 and o["slouching_pct"] == 25.0 and o["leaning_pct"] == 12.5
     # speech: 18 words in 25 s
@@ -85,11 +88,19 @@ def test_report_metrics_match_the_timeline(tmp_path):
     w = r["windows"]
     assert [(x["start"], x["end"], x["frames"]) for x in w] == [(0.0, 10.0, 20), (10.0, 20.0, 20), (20.0, 25.0, 10)]
     assert [x["facing_camera_pct"] for x in w] == [100.0, 50.0, 0.0]
+    assert [x["not_facing_pct"] for x in w] == [0.0, 50.0, 0.0]
+    assert [x["face_not_visible_pct"] for x in w] == [0.0, 0.0, 100.0]
     assert [x["posture_frames"] for x in w] == [10, 20, 10]
     assert [x["slouching_pct"] for x in w] == [0.0, 50.0, 0.0]
     assert [x["leaning_pct"] for x in w] == [0.0, 0.0, 50.0]
     assert [x["words"] for x in w] == [8, 10, 0]
     assert [x["wpm"] for x in w] == [48.0, 60.0, 0.0]
+
+
+def test_v1_timelines_give_the_same_face_states(tmp_path):
+    v1 = load_via_json(tmp_path, make_timeline(v1=True))
+    v2 = load_via_json(tmp_path, make_timeline())
+    assert v1["overall"] == v2["overall"] and v1["windows"] == v2["windows"]
 
 
 def test_fillers_and_pauses_are_located_in_the_transcript(tmp_path):
@@ -115,12 +126,12 @@ def test_fillers_and_pauses_are_located_in_the_transcript(tmp_path):
 def test_report_without_audio_or_posture_marks_them_not_measured(tmp_path):
     r = load_via_json(tmp_path, make_timeline(audio=False, pose=False))
     o = r["overall"]
-    assert o["facing_camera_pct"] == 60.0
+    assert o["facing_camera_pct"] == 60.0 and o["face_not_visible_pct"] == 20.0
     assert o["slouching_pct"] is None and o["leaning_pct"] is None
     assert o["wpm"] is None and o["fillers_per_min"] is None and o["long_pause_count"] is None
     assert [x["wpm"] for x in r["windows"]] == [None, None, None]
-    assert [i["metric"] for i in r["feedback"]["improvements"]] == ["facing_camera_pct"]
-    assert r["feedback"]["note"] == "This answer measured 1 of the 6 metrics, so the list has fewer than 3 items."
+    assert [i["metric"] for i in r["feedback"]["improvements"]] == ["face_not_visible_pct", "facing_camera_pct"]
+    assert r["feedback"]["note"] == "This answer measured 2 of the 7 metrics, so the list has fewer than 3 items."
 
 
 # ---------------------------------------------------------------- feedback
@@ -128,10 +139,11 @@ def test_report_without_audio_or_posture_marks_them_not_measured(tmp_path):
 def test_three_improvements_ranked_by_distance_from_the_guideline(tmp_path):
     fb = load_via_json(tmp_path, make_timeline())["feedback"]
     # fillers 7.2/min vs at most 2: 2.6, slouching 25% vs at most 10: 1.5, long pauses 2.4/min vs at most 1: 1.4,
-    # wpm 43.2 vs 120 to 160: 0.64, leaning 12.5% vs at most 10: 0.25, facing 60% vs at least 70: 0.143
-    assert [i["metric"] for i in fb["ranked"]] == ["fillers_per_min", "slouching_pct", "long_pauses_per_min", "wpm",
-                                                  "leaning_pct", "facing_camera_pct"]
-    assert [i["distance"] for i in fb["ranked"]] == pytest.approx([2.6, 1.5, 1.4, 0.64, 0.25, 10 / 70], abs=1e-4)
+    # face not visible 20% vs at most 10: 1.0, wpm 43.2 vs 120 to 160: 0.64, leaning 12.5% vs at most 10: 0.25,
+    # facing 60% vs at least 70: 0.143
+    assert [i["metric"] for i in fb["ranked"]] == ["fillers_per_min", "slouching_pct", "long_pauses_per_min",
+                                                  "face_not_visible_pct", "wpm", "leaning_pct", "facing_camera_pct"]
+    assert [i["distance"] for i in fb["ranked"]] == pytest.approx([2.6, 1.5, 1.4, 1.0, 0.64, 0.25, 10 / 70], abs=1e-4)
     top = fb["improvements"]
     assert len(top) == 3 and top == fb["ranked"][:3]
     for item in top:
@@ -151,6 +163,9 @@ def test_feedback_still_gives_three_when_everything_is_inside_the_guidelines():
     assert not any(i["outside_guideline"] for i in top)
     assert top[0]["distance"] == pytest.approx((150 - 160) / 160)
     assert top[0]["action"].startswith("Slow down")  # nearer the upper limit
+    hidden = build_feedback({**overall, "face_not_visible_pct": 15.0})["improvements"][0]
+    assert hidden["metric"] == "face_not_visible_pct" and hidden["distance"] == pytest.approx(0.5)
+    assert hidden["action"].startswith("Check the lighting and framing")
     slow = build_feedback({**overall, "wpm": 90.0})["improvements"][0]
     assert slow["metric"] == "wpm" and slow["distance"] == pytest.approx(0.25) and "points" in slow["action"]
     assert fb["note"] is None
@@ -182,6 +197,9 @@ def test_history_builds_a_missing_report_from_the_timeline(tmp_path):
     (d / "timeline.json").write_text(json.dumps(make_timeline(session_id=d.name)), encoding="utf-8")
     assert history.load_report(d.name, tmp_path)["overall"]["facing_camera_pct"] == 60.0
     assert (d / "report.json").exists()
+    # a report saved under an older schema is rebuilt from the timeline
+    (d / "report.json").write_text(json.dumps({"schema": "placement-mirror report v1"}), encoding="utf-8")
+    assert history.load_report(d.name, tmp_path)["overall"]["face_not_visible_pct"] == 20.0
     with pytest.raises(KeyError):
         history.load_report("..\\secrets", tmp_path)
     with pytest.raises(KeyError):

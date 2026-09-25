@@ -31,7 +31,8 @@ function guideText(g) {
  *   x       {min, max, title, ticks: [{value, text}]}
  *   y       {max, step, title}
  *   series  [{name, cls, marker: "circle" | "square", points}]. A null y leaves a gap.
- *   guide   {low, high} coaching guideline, drawn as dashed lines with a band between
+ *   guide   {low, high, label} coaching guideline, or a list of them, drawn as dashed lines
+ *           with a band between low and high. With more than one, each is named by label.
  */
 function drawChart(opts) {
   const W = 640, H = 250, M = { left: 56, right: 20, top: 22, bottom: 46 };
@@ -44,8 +45,8 @@ function drawChart(opts) {
     svg.append(svgEl("line", { x1: M.left, x2: M.left + pw, y1: ys(v), y2: ys(v), class: "grid" }));
     svg.append(svgEl("text", { x: M.left - 8, y: ys(v) + 4, class: "tick", "text-anchor": "end" }, String(v)));
   }
-  const g = opts.guide;
-  if (g) {
+  const guides = [].concat(opts.guide || []);
+  for (const g of guides) {
     if (g.low !== null && g.high !== null) {
       svg.append(svgEl("rect", { x: M.left, y: ys(g.high), width: pw, height: ys(g.low) - ys(g.high),
         class: "guide-band" }));
@@ -54,8 +55,9 @@ function drawChart(opts) {
       if (v !== null) svg.append(svgEl("line", { x1: M.left, x2: M.left + pw, y1: ys(v), y2: ys(v), class: "guide-line" }));
     }
     const top = g.high !== null ? g.high : g.low;
+    const name = guides.length > 1 ? `${g.label}: ` : "";
     svg.append(svgEl("text", { x: M.left + pw - 4, y: ys(top) - 5, class: "guide-text", "text-anchor": "end" },
-      `coaching guideline ${guideText(g)}`));
+      `${name}coaching guideline ${guideText(g)}`));
   }
   for (const t of opts.x.ticks) {
     svg.append(svgEl("text", { x: xs(t.value), y: M.top + ph + 18, class: "tick", "text-anchor": "middle" }, t.text));
