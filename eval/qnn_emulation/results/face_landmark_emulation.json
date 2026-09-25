@@ -1,0 +1,46 @@
+{
+  "label": "local x86 CPU, QNN HTP emulation, correctness only",
+  "check": "face_landmark precompiled_qnn_onnx on QNN HTP emulation vs onnx on CPU",
+  "machine": "AMD64",
+  "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+  "onnxruntime": "1.30.0",
+  "onnxruntime_qnn": "2.6.0",
+  "input": {
+    "photo": "qai_hub_models asset store, mediapipe_face v3 face.jpeg",
+    "photo_url": "https://qaihub-public-assets.s3.us-west-2.amazonaws.com/qai-hub-models/models/mediapipe_face/v3/face.jpeg",
+    "photo_size": [
+      4032,
+      3024
+    ],
+    "detector": "models/face_detector/onnx on CPUExecutionProvider",
+    "box_score": 0.9647663808527684
+  },
+  "timings_recorded": false,
+  "qnn_devices": [
+    "OrtHardwareDeviceType.CPU"
+  ],
+  "qnn_session": {
+    "created": true,
+    "providers": [
+      "QNNExecutionProvider",
+      "CPUExecutionProvider"
+    ]
+  },
+  "qnn_input_layout": "NHWC",
+  "cpu_input_layout": "NCHW",
+  "landmarks_shape": [
+    1,
+    468,
+    3
+  ],
+  "landmark_units": "model output (x, y, z) / 192, crop normalized",
+  "landmarks_max_abs_diff": 0.0005385875701904297,
+  "landmarks_max_abs_diff_xyz": [
+    0.0004831552505493164,
+    0.0005385875701904297,
+    0.00010663270950317383
+  ],
+  "landmarks_max_abs_diff_px_192": 0.1034088134765625,
+  "score_qnn": 1.0000001192092896,
+  "score_cpu": 1.0
+}

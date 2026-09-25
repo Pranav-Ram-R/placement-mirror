@@ -1,0 +1,36 @@
+[
+  {
+    "kind": "measurement",
+    "model": "face_landmark",
+    "metric": "landmarks_max_abs_diff_vs_onnx_cpu",
+    "value": 0.0005385875701904297,
+    "unit": "normalized crop coordinate (landmark / 192)",
+    "source": "local x86 CPU",
+    "runtime": "precompiled_qnn_onnx",
+    "compute_unit": "QNN HTP emulation on CPU",
+    "precision": "float32",
+    "exec_precision": null,
+    "qnn_version": null,
+    "ort_version": "1.30.0",
+    "job_id": null,
+    "timestamp": "2026-09-25T06:33:02+00:00",
+    "notes": "local x86 CPU, QNN HTP emulation, correctness only. precompiled_qnn_onnx landmarks on the QNN EP ['OrtHardwareDeviceType.CPU'] device (strict, session.disable_cpu_ep_fallback=1) vs models/face_landmark/onnx on CPUExecutionProvider, one 192x192 face crop of the qai_hub_models mediapipe_face sample photo. onnxruntime_qnn 2.6.0. Result file eval/qnn_emulation/results/face_landmark_emulation.json"
+  },
+  {
+    "kind": "measurement",
+    "model": "face_landmark",
+    "metric": "landmarks_max_abs_diff_vs_onnx_cpu_px",
+    "value": 0.1034088134765625,
+    "unit": "px in the 192x192 crop",
+    "source": "local x86 CPU",
+    "runtime": "precompiled_qnn_onnx",
+    "compute_unit": "QNN HTP emulation on CPU",
+    "precision": "float32",
+    "exec_precision": null,
+    "qnn_version": null,
+    "ort_version": "1.30.0",
+    "job_id": null,
+    "timestamp": "2026-09-25T06:33:02+00:00",
+    "notes": "local x86 CPU, QNN HTP emulation, correctness only. precompiled_qnn_onnx landmarks on the QNN EP ['OrtHardwareDeviceType.CPU'] device (strict, session.disable_cpu_ep_fallback=1) vs models/face_landmark/onnx on CPUExecutionProvider, one 192x192 face crop of the qai_hub_models mediapipe_face sample photo. onnxruntime_qnn 2.6.0. Result file eval/qnn_emulation/results/face_landmark_emulation.json"
+  }
+]
