@@ -5,6 +5,8 @@
 - GET /api/questions  the question bank (questions/bank.json)
 - GET /api/config     replay mode settings for the browser
 - GET /replay/video   the replay video file (replay mode only)
+- GET /api/sessions   saved answers with the history trend metrics (app.storage.history)
+- GET /api/sessions/{id}/report  one answer's report (app.analysis.report)
 - WS  /ws             one session (app.session.controller). Binary messages carry frames in
                       (app.vision.pipeline parse_frame). Text messages carry JSON commands
                       in (select_question, calibrate, start_answer, stop_answer, stop) and
@@ -46,12 +48,14 @@ from fastapi import HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from app.analysis.feedback import guideline_dict
 from app.audio.pipeline import AUDIO_MODELS, AudioPipeline
-from app.config import AUDIO, SESSION
+from app.config import AUDIO, REPORT, SESSION
 from app.runtime.priority import disable_power_throttling
 from app.runtime.runner import CPU_ONLY, ModelRunner
 from app.session.controller import SessionController
 from app.session.questions import default_bank
+from app.storage import history
 from app.vision.pipeline import VISION_MODELS, VisionPipeline
 
 STATIC = Path(__file__).resolve().parent / "ui" / "static"
@@ -112,6 +116,20 @@ def replay_info() -> dict | None:
 @app.get("/api/config")
 def api_config() -> JSONResponse:
     return JSONResponse({"replay": replay_info(), "auto_stop_extra_s": SESSION.auto_stop_extra_s})
+
+
+@app.get("/api/sessions")
+def api_sessions() -> JSONResponse:
+    return JSONResponse({"sessions": history.list_sessions(sessions_dir()), "trend_metrics": history.TREND_METRICS,
+                         "guidelines": [guideline_dict(g) for g in REPORT.guidelines]})
+
+
+@app.get("/api/sessions/{session_id}/report")
+def api_report(session_id: str) -> JSONResponse:
+    try:
+        return JSONResponse(history.load_report(session_id, sessions_dir()))
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"no saved answer {session_id}") from None
 
 
 @app.get("/replay/video")

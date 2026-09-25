@@ -269,7 +269,7 @@ const STATE_TEXT = {
   ready: "Calibrated. Press Start answer when you are ready.",
   answering: "Answering. Press Stop answer when you finish.",
   processing: "Processing the answer.",
-  report: "Answer saved. Choose another question or calibrate again.",
+  report: "Answer saved. Open the report below, or choose another question or calibrate again.",
 };
 
 function send(obj) {
@@ -320,9 +320,15 @@ function renderSessionState(ev) {
   if (ev.state === "answering" && prev !== "answering") startTimer();
   if (ev.state !== "answering") stopTimer();
   if (ev.state === "processing" && session.config.replay) video.pause();
+  if (ev.state === "answering") $("report-link").hidden = true;
+  if (ev.state === "report" && ev.report_id) {
+    $("report-anchor").href = `report.html?id=${encodeURIComponent(ev.report_id)}`;
+    $("report-link").hidden = false;
+  }
   updateButtons();
   // Move focus to the next action so the whole flow works from the keyboard.
-  const next = { calibrate: "calibrate", ready: "start-answer", answering: "stop-answer", report: "category" }[ev.state];
+  const next = { calibrate: "calibrate", ready: "start-answer", answering: "stop-answer",
+    report: ev.report_id ? "report-anchor" : "category" }[ev.state];
   if (next && prev !== ev.state) $(next).focus();
 }
 

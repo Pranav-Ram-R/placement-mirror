@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>History - Placement Mirror</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Placement Mirror</h1>
+  <nav aria-label="Pages">
+    <ul>
+      <li><a href="/">Practice</a></li>
+      <li><a href="history.html" aria-current="page">History</a></li>
+    </ul>
+  </nav>
+</header>
+
+<p id="error" class="error" role="alert" hidden></p>
+
+<main class="page">
+  <section aria-labelledby="history-heading">
+    <h2 id="history-heading">History</h2>
+    <p id="history-summary" role="status">Loading saved answers.</p>
+    <p class="muted">Dashed lines show coaching guidelines. They are coaching targets, not measurements.</p>
+    <div id="trends" class="trend-grid"></div>
+  </section>
+
+  <section aria-labelledby="sessions-heading">
+    <h2 id="sessions-heading">Saved answers</h2>
+    <div id="sessions"></div>
+  </section>
+</main>
+
+<script src="charts.js"></script>
+<script src="history.js"></script>
+</body>
+</html>

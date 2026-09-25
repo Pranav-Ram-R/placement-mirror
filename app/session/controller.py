@@ -9,6 +9,7 @@ The saved timeline (sessions_dir/<session id>/timeline.json) covers the answer o
   start, facing camera, yaw, pitch, slouching and leaning
 - segments: every speech segment, with start, end, text, fillers and word count
 - pauses: pause intervals from the VAD pause events
+The report (report.json in the same folder, app.analysis.report) is built from it.
 Only metrics and transcript text are written. Raw video and audio never are.
 """
 
@@ -21,11 +22,12 @@ import time
 from pathlib import Path
 from typing import Callable
 
+from app.analysis.report import build_report
 from app.config import AUDIO, SESSION, VISION, SessionConfig, VisionConfig
 from app.runtime.priority import AsrPriority
 from app.session.machine import InvalidTransition, SessionMachine, State
 from app.session.questions import default_bank, find_question
-from app.storage import paths
+from app.storage import history, paths
 from app.vision.pipeline import VisionPipeline
 
 TIMELINE_SCHEMA = "placement-mirror timeline v1"
@@ -50,6 +52,7 @@ class SessionController:
         self.answer: dict | None = None
         self.calibration_event: dict | None = None
         self.last_timeline: Path | None = None
+        self.last_report: Path | None = None
         self._timer: threading.Timer | None = None
         self._processing: threading.Thread | None = None
         self._lock = threading.RLock()
@@ -158,13 +161,14 @@ class SessionController:
         try:
             timeline = self.build_timeline()
             path = self.save_timeline(timeline)
+            report_path = history.save_report(build_report(timeline), self.sessions_dir)
         except Exception as e:  # noqa: BLE001
             self.emit({"type": "error", "message": f"Processing failed: {type(e).__name__}: {e}"})
             return
         with self._lock:
             self.machine.fire("processed")
-            self.last_timeline = path
-            self._emit_state(timeline=str(path), summary=timeline["summary"])
+            self.last_timeline, self.last_report = path, report_path
+            self._emit_state(timeline=str(path), summary=timeline["summary"], report_id=timeline["session_id"])
 
     def close(self) -> None:
         """Connection closed: finish an answer in progress, then stop the vision worker."""

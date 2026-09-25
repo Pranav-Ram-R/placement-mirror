@@ -9,6 +9,12 @@
 <body>
 <header>
   <h1>Placement Mirror</h1>
+  <nav aria-label="Pages">
+    <ul>
+      <li><a href="/" aria-current="page">Practice</a></li>
+      <li><a href="history.html" target="_blank">History (opens in a new tab)</a></li>
+    </ul>
+  </nav>
   <p id="connection" role="status">Not connected</p>
   <p id="replay-banner" class="notice" hidden></p>
 </header>
@@ -46,6 +52,8 @@
           <button type="button" id="stop-answer" disabled>Stop answer</button>
         </p>
         <p id="answer-timer" role="timer" aria-live="off">0:00</p>
+        <p id="report-link" hidden><a id="report-anchor" href="history.html" target="_blank">Open the report for
+          this answer (opens in a new tab)</a></p>
       </li>
     </ol>
   </section>

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Answer report - Placement Mirror</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Placement Mirror</h1>
+  <nav aria-label="Pages">
+    <ul>
+      <li><a href="/">Practice</a></li>
+      <li><a href="history.html">History</a></li>
+    </ul>
+  </nav>
+</header>
+
+<p id="error" class="error" role="alert" hidden></p>
+
+<main class="page" id="report" hidden>
+  <section aria-labelledby="answer-heading">
+    <h2 id="answer-heading">Answer report</h2>
+    <p id="question-text" class="question"></p>
+    <dl id="answer-meta" class="meta"></dl>
+    <p id="replay-note" class="notice" hidden></p>
+  </section>
+
+  <section aria-labelledby="improve-heading">
+    <h2 id="improve-heading">Three things to work on</h2>
+    <p class="muted">Each metric is compared with a coaching guideline. Guidelines are coaching targets, not
+      measurements. The metrics furthest from their guideline come first.</p>
+    <p id="feedback-note" hidden></p>
+    <ol id="improvements" class="improvements"></ol>
+  </section>
+
+  <section aria-labelledby="summary-heading">
+    <h2 id="summary-heading">Summary</h2>
+    <dl id="summary" class="indicators"></dl>
+  </section>
+
+  <section aria-labelledby="facing-heading">
+    <h2 id="facing-heading">Facing the camera</h2>
+    <div id="facing-chart"></div>
+  </section>
+
+  <section aria-labelledby="posture-heading">
+    <h2 id="posture-heading">Posture</h2>
+    <div id="posture-chart"></div>
+  </section>
+
+  <section aria-labelledby="pace-heading">
+    <h2 id="pace-heading">Speaking pace</h2>
+    <div id="pace-chart"></div>
+  </section>
+
+  <section aria-labelledby="transcript-heading">
+    <h2 id="transcript-heading">Transcript</h2>
+    <p class="muted">Filler words are highlighted. Silences of <span id="pause-min"></span> s or longer show as
+      [pause]. Whisper tiny can miss or change words.</p>
+    <p id="transcript" class="transcript-text"></p>
+    <div id="events-table"></div>
+  </section>
+</main>
+
+<script src="charts.js"></script>
+<script src="report.js"></script>
+</body>
+</html>

@@ -136,3 +136,40 @@ class SessionConfig:
 
 
 SESSION = SessionConfig()
+
+
+GUIDELINE_KIND = "coaching guideline, not a measurement"
+
+
+@dataclass(frozen=True)
+class Guideline:
+    """A target range for one report metric. low and high are inclusive, None means no limit."""
+    metric: str
+    label: str
+    unit: str
+    low: float | None = None
+    high: float | None = None
+    kind: str = GUIDELINE_KIND
+
+
+@dataclass(frozen=True)
+class ReportConfig:
+    # The report splits the answer into windows of window_s seconds for facing camera,
+    # posture and WPM. A last window shorter than min_last_window_s is merged into the
+    # window before it, so a short tail does not show as a spike.
+    window_s: float = 10.0
+    min_last_window_s: float = 5.0
+
+    # Coaching guidelines the feedback compares each metric with. These are coaching
+    # targets, not measurements. PROVISIONAL: chosen by the developer, need author review.
+    guidelines: tuple = (
+        Guideline("facing_camera_pct", "Facing the camera", "% of the answer", low=70.0),
+        Guideline("slouching_pct", "Slouching", "% of the answer", high=10.0),
+        Guideline("leaning_pct", "Leaning", "% of the answer", high=10.0),
+        Guideline("wpm", "Speaking pace", "words per minute", low=120.0, high=160.0),
+        Guideline("fillers_per_min", "Filler words", "per minute", high=2.0),
+        Guideline("long_pauses_per_min", "Long pauses", "per minute", high=1.0),
+    )
+
+
+REPORT = ReportConfig()

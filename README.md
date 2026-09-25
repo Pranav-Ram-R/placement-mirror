@@ -39,9 +39,26 @@ To run the app, start the server and open http://127.0.0.1:8000 in Edge:
 Press Start camera, choose a question, press Calibrate while sitting as in an interview and
 looking at the camera, then Start answer and Stop answer. An answer also stops by itself at
 the question's suggested time plus 60 s. Audio comes from the default microphone and runs
-only during the answer. Each answer is saved as `timeline.json` under
+only during the answer. Each answer is saved as `timeline.json` and `report.json` under
 `%LOCALAPPDATA%\PlacementMirror\sessions\<session id>\` (metrics and transcript text
 only, never audio or video). `--data-dir <dir>` moves that folder.
+
+After an answer, Open the report shows facing the camera, posture and words per minute per
+10 s window as charts with data tables, the transcript with fillers highlighted and long
+pauses inline, and three things to work on. Each metric is compared with a coaching
+guideline in `app/config.py` (`ReportConfig`). The guidelines are coaching targets, not
+measurements, and are provisional until reviewed. The History page lists every saved answer
+and the trend of facing the camera, words per minute, fillers per minute and long pauses.
+All pages and charts are served by the app. Nothing is loaded from the network.
+
+To check that nothing leaves localhost, run the server under the offline check, which logs
+every network attempt of the Python process and refuses any that is not loopback. Start
+Edge with `--log-net-log=<file>` to log the browser side too, then summarize both:
+
+```powershell
+.venv-app\Scripts\python tools\offline_check.py serve net.jsonl
+.venv-app\Scripts\python tools\offline_check.py summarize net.jsonl --net-log edge-netlog.json
+```
 
 Replay mode, for development: `--replay <video> <wav>` makes the browser play the video
 file instead of the camera and the server play the WAV (16 kHz mono 16 bit) instead of the

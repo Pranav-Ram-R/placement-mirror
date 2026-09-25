@@ -144,6 +144,12 @@ def test_full_session_saves_a_timeline_covering_the_whole_answer(tmp_path):
     assert tl["pauses"][1]["start"] == 7.5 and tl["pauses"][1]["open_at_stop"] is True
     assert tl["summary"]["frames"] == 100 and tl["summary"]["segments"] == 2 and tl["summary"]["words"] == 8
     assert report_event["summary"] == tl["summary"]
+    # the report is saved next to the timeline and named in the event
+    assert report_event["report_id"] == tl["session_id"] == c.last_report.parent.name
+    report = json.loads(c.last_report.read_text(encoding="utf-8"))
+    assert report["overall"]["facing_camera_pct"] == 100.0 and report["overall"]["words"] == 8
+    assert report["overall"]["filler_count"] == 1 and report["overall"]["long_pause_count"] == 1
+    assert len(report["feedback"]["improvements"]) == 3
 
 
 def test_answer_stops_by_itself_at_the_limit(tmp_path):

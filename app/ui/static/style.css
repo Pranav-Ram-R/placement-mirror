@@ -4,6 +4,25 @@
   --bad: #b3261e;
   --muted: #6b6b6b;
   --line: #d0d0d0;
+  --series-a: #1f5fa8;
+  --series-b: #a14a00;
+  --series-c: #6a3d9a;
+  --guide: #3d7a3d;
+  --guide-band: rgba(61, 122, 61, 0.12);
+  --mark: #ffe08a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --muted: #a8a8a8;
+    --line: #4a4a4a;
+    --series-a: #7fb2ee;
+    --series-b: #f0a35c;
+    --series-c: #c3a3e6;
+    --guide: #86c586;
+    --guide-band: rgba(134, 197, 134, 0.15);
+    --mark: #6b5400;
+  }
 }
 
 body {
@@ -69,3 +88,42 @@ select { font: inherit; max-width: 100%; }
 .question { font-weight: 600; }
 .muted { color: var(--muted); }
 button:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid #4a90d9; outline-offset: 2px; }
+
+a:focus-visible { outline: 3px solid #4a90d9; outline-offset: 2px; }
+nav ul { display: flex; flex-wrap: wrap; gap: 1rem; list-style: none; margin: 0; padding: 0; }
+nav a[aria-current="page"] { font-weight: 600; text-decoration: none; }
+
+/* report and history pages */
+main.page { display: block; max-width: 900px; }
+main.page > section { margin-bottom: 2rem; }
+.meta { display: grid; grid-template-columns: max-content 1fr; gap: 0.2rem 1rem; }
+.meta > div { display: contents; }
+.meta dd { text-align: left; font-weight: 400; }
+.improvements li { margin-bottom: 0.8rem; }
+.improvements .action { margin: 0.2rem 0 0; }
+.guide-kind { color: var(--muted); }
+caption { text-align: left; font-weight: 600; padding: 0.4rem 0; }
+.transcript-text { line-height: 1.8; }
+mark.filler { background: var(--mark); color: inherit; padding: 0 0.15em; border-radius: 2px; }
+.pause { color: var(--muted); font-style: italic; white-space: nowrap; }
+.trend-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); gap: 1rem 2rem; }
+.trend-grid h3 { font-size: 1rem; margin: 0.5rem 0; }
+.trend-grid .chart text { font-size: 18px; }
+.trend-grid .chart .guide-text { font-size: 15px; }
+
+.chart { display: block; width: 100%; max-width: 720px; height: auto; margin-bottom: 0.5rem; }
+.chart text { fill: currentColor; font-size: 12px; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .axis { stroke: currentColor; stroke-width: 1; }
+.chart .guide-line { stroke: var(--guide); stroke-width: 1.5; stroke-dasharray: 6 4; }
+.chart .guide-band { fill: var(--guide-band); }
+.chart .guide-text { fill: var(--guide); font-size: 11px; }
+.series path { fill: none; stroke-width: 2.5; }
+.series-a path { stroke: var(--series-a); }
+.series-a circle, .series-a rect { fill: var(--series-a); }
+.series-b path { stroke: var(--series-b); }
+.series-b circle, .series-b rect { fill: var(--series-b); }
+.series-c path { stroke: var(--series-c); stroke-dasharray: 7 4; }
+.series-c circle, .series-c rect { fill: var(--series-c); }
+.legend { display: flex; flex-wrap: wrap; gap: 1.5rem; list-style: none; padding: 0; margin: 0 0 0.5rem; }
+.legend li { display: flex; align-items: center; gap: 0.3rem; }
