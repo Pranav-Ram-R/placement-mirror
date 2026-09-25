@@ -1,11 +1,12 @@
-"""Collect finished Day 1 AI Hub profile jobs into Measurement records.
+"""Collect finished AI Hub profile jobs into Measurement records.
 
-Reads benchmarks/raw/jobs_day1.json. For every finished profile job it saves the raw
-per-iteration times to benchmarks/raw/samples/<job_id>.json and writes Measurement
-records (Source.AIHUB_X_ELITE) to benchmarks/raw/day1_aihub_results.json. The output
-file is rebuilt from AI Hub on every run, so reruns are safe. Unfinished jobs are
-skipped. Failed jobs are printed with their error and their status is written back
-to the job log.
+Reads every job log benchmarks/raw/jobs_<name>.json (for example jobs_day1.json,
+jobs_day2.json). For every finished profile job it saves the raw per-iteration times to
+benchmarks/raw/samples/<job_id>.json and writes Measurement records
+(Source.AIHUB_X_ELITE) to benchmarks/raw/<name>_aihub_results.json. Each output file is
+rebuilt from AI Hub on every run, so reruns are safe. Unfinished jobs are skipped.
+Failed jobs are printed with their error and their status is written back to the job
+log.
 
 Usage: python -m aihub.collect_results
 """
@@ -26,8 +27,6 @@ import qai_hub as hub
 from benchmarks.schema import Measurement, Source, save_json
 
 RAW = Path(__file__).resolve().parents[1] / "benchmarks" / "raw"
-LOG = RAW / "jobs_day1.json"
-OUT = RAW / "day1_aihub_results.json"
 SAMPLES = RAW / "samples"
 FP16_LINE = "enable_htp_fp16_precision = 1"
 
@@ -143,15 +142,9 @@ def records_for(job, entry: dict, logdir: Path) -> list[Measurement]:
     return out
 
 
-def main() -> int:
-    if not LOG.exists():
-        print(f"{LOG} not found. Run aihub.submit_batch first.")
-        return 1
-    entries = json.loads(LOG.read_text(encoding="utf-8"))
-    client = hub.Client()
-    SAMPLES.mkdir(parents=True, exist_ok=True)
-    logdir = Path(tempfile.mkdtemp(prefix="aihub_logs_"))
-
+def collect_log(client, log: Path, logdir: Path) -> None:
+    out = RAW / f"{log.stem.removeprefix('jobs_')}_aihub_results.json"
+    entries = json.loads(log.read_text(encoding="utf-8"))
     records: list[Measurement] = []
     finished, pending, failed = [], [], []
     for entry in entries:
@@ -170,12 +163,14 @@ def main() -> int:
             finished.append(entry)
             if entry["job_type"] == "profile":
                 records += records_for(job, entry, logdir)
-    LOG.write_text(json.dumps(entries, indent=2) + "\n", encoding="utf-8")
-    save_json(records, OUT)
+    log.write_text(json.dumps(entries, indent=2) + "\n", encoding="utf-8")
+    save_json(records, out)
 
     def line(e):
-        return f"{e.get('job_type', ''):8} {str(e.get('job_id')):10} {e['model']:45} {e['runtime']:21} {str(e.get('compute_unit') or '-'):4}"
+        return (f"{e.get('job_type', ''):8} {str(e.get('job_id')):10} {e['model']:45} {e['runtime']:21} "
+                f"{str(e.get('compute_unit') or '-'):4}")
 
+    print(f"== {log.name}")
     print(f"Finished ({len(finished)}):")
     for e in finished:
         print("  " + line(e))
@@ -185,7 +180,19 @@ def main() -> int:
     print(f"Failed ({len(failed)}):")
     for e, err in failed:
         print("  " + line(e) + f"\n      error: {err}")
-    print(f"Wrote {len(records)} measurements to {OUT}")
+    print(f"Wrote {len(records)} measurements to {out}\n")
+
+
+def main() -> int:
+    logs = sorted(RAW.glob("jobs_*.json"))
+    if not logs:
+        print(f"No job logs in {RAW}. Run aihub.submit_batch first.")
+        return 1
+    client = hub.Client()
+    SAMPLES.mkdir(parents=True, exist_ok=True)
+    logdir = Path(tempfile.mkdtemp(prefix="aihub_logs_"))
+    for log in logs:
+        collect_log(client, log, logdir)
     return 0
 
 

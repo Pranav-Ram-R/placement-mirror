@@ -1,0 +1,18 @@
+[
+  {
+    "job_id": "jp2rr1wxg",
+    "url": "https://workbench.aihub.qualcomm.com/jobs/jp2rr1wxg/",
+    "job_type": "profile",
+    "model": "whisper_tiny_float_encoder",
+    "runtime": "precompiled_qnn_onnx",
+    "compute_unit": "ALL",
+    "options": "--max_profiler_iterations 100 --qairt_version 2.50",
+    "compile_job_id": "jp1nnvn2g",
+    "group": "Item 1c: Day 0 shipping encoder reprofiled with 100 iterations (Day 0 job j5m00d0wg had 10)",
+    "device": "Snapdragon X Elite CRD",
+    "submitted_at": "2026-09-24T19:29:36+00:00",
+    "day0_profile_options": "--qairt_version latest --max_profiler_iterations 10",
+    "same_target_model_as_day0": "mmrgv496q",
+    "status": "SUCCESS"
+  }
+]
