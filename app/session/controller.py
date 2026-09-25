@@ -10,7 +10,10 @@ The saved timeline (sessions_dir/<session id>/timeline.json) covers the answer o
 - segments: every speech segment, with start, end, text, fillers and word count
 - pauses: pause intervals from the VAD pause events
 The report (report.json in the same folder, app.analysis.report) is built from it.
-Only metrics and transcript text are written. Raw video and audio never are.
+Only metrics and transcript text are written. Raw video and audio never are, except in
+eval recording mode (eval_recordings set, server flag --record-eval, development only):
+then the microphone audio of each answer goes to eval_recordings/<session id>/audio.wav
+and the browser uploads its camera video there (app.storage.recordings).
 """
 
 from __future__ import annotations
@@ -27,7 +30,7 @@ from app.config import AUDIO, SESSION, VISION, SessionConfig, VisionConfig
 from app.runtime.priority import AsrPriority
 from app.session.machine import InvalidTransition, SessionMachine, State
 from app.session.questions import default_bank, find_question
-from app.storage import history, paths
+from app.storage import history, paths, recordings
 from app.vision.pipeline import VisionPipeline
 
 # v2: frames carry face ("facing", "not_facing" or "not_visible") instead of v1's facing
@@ -38,12 +41,16 @@ TIMELINE_SCHEMA = "placement-mirror timeline v2"
 class SessionController:
     def __init__(self, runner, emit: Callable[[dict], None], *, bank: dict | None = None,
                  sessions_dir: Path | None = None, audio_factory=None, replay: dict | None = None,
-                 cfg: SessionConfig = SESSION, vision_cfg: VisionConfig = VISION):
+                 cfg: SessionConfig = SESSION, vision_cfg: VisionConfig = VISION,
+                 eval_recordings: Path | None = None):
         self.runner = runner
         self.emit = emit
         self.bank = bank or default_bank()
         self.sessions_dir = Path(sessions_dir) if sessions_dir else paths.sessions_dir()
-        self.audio_factory = audio_factory  # (emit, priority) -> AudioPipeline, or None for no audio
+        self.audio_factory = audio_factory  # (emit, priority, recorder) -> AudioPipeline, or None for no audio
+        self.eval_recordings = Path(eval_recordings) if eval_recordings else None  # None: never record media
+        self.recorder: recordings.WavRecorder | None = None
+        self.record_folder: Path | None = None
         self.replay = replay
         self.cfg = cfg
         self.priority = AsrPriority()
@@ -121,12 +128,21 @@ class SessionController:
             self.machine.fire("start")
             q = self.machine.question
             limit = q["suggested_time_s"] + self.cfg.auto_stop_extra_s
-            self.answer = {"start_mono": now, "start_wall": dt.datetime.now().isoformat(timespec="seconds"),
-                           "limit_s": limit, "stopped_by": None}
+            started = dt.datetime.now()
+            session_id = f"{started.strftime('%Y-%m-%d_%H%M%S')}_{q['id']}"
+            self.answer = {"start_mono": now, "start_wall": started.isoformat(timespec="seconds"),
+                           "session_id": session_id, "limit_s": limit, "stopped_by": None}
             self.audio = None
+            self.recorder = self.record_folder = None
+            if self.eval_recordings is not None and self.audio_factory is not None:
+                self.record_folder = recordings.start_folder(self.eval_recordings, session_id, q)
+                self.recorder = recordings.WavRecorder(
+                    self.record_folder / "audio.wav", AUDIO.sample_rate,
+                    on_start=lambda t: self.emit({"type": "eval_recording", "state": "started",
+                                                  "session_id": session_id, "audio_start_epoch_s": t}))
             if self.audio_factory is not None:
                 try:
-                    self.audio = self.audio_factory(self.emit, self.priority)
+                    self.audio = self.audio_factory(self.emit, self.priority, self.recorder)
                     self.audio.start()
                     self.audio_runs.append(self.audio)
                     self.emit({"type": "audio", "state": "running", "source": self.audio.source.describe()})
@@ -136,7 +152,7 @@ class SessionController:
             self._timer = threading.Timer(limit, self.stop_answer, args=(f"auto stop at {limit:g} s",))
             self._timer.daemon = True
             self._timer.start()
-            self._emit_state()
+            self._emit_state(session_id=session_id, recording=self.recorder is not None)
 
     def stop_answer(self, reason: str, now: float | None = None, wait: bool = False) -> None:
         with self._lock:
@@ -160,6 +176,14 @@ class SessionController:
     def _process(self) -> None:
         if self.audio is not None:
             self.audio.stop()
+        if self.recorder is not None:
+            try:
+                source = self.audio.source.describe() if self.audio is not None else None
+                meta = recordings.save_audio(self.record_folder, {**self.recorder.close(), "source": source})
+                self.emit({"type": "eval_recording", "state": "audio_saved", "session_id": meta["session_id"],
+                           "audio": meta["audio"]})
+            except Exception as e:  # noqa: BLE001  the answer is still processed
+                self.emit({"type": "error", "message": f"Eval audio recording failed: {type(e).__name__}: {e}"})
         try:
             timeline = self.build_timeline()
             path = self.save_timeline(timeline)
@@ -236,8 +260,7 @@ class SessionController:
         }
 
     def save_timeline(self, timeline: dict) -> Path:
-        stamp = dt.datetime.now().strftime("%Y-%m-%d_%H%M%S")
-        session_id = f"{stamp}_{timeline['question']['id']}"
+        session_id = self.answer["session_id"]  # set when the answer started
         timeline["session_id"] = session_id
         folder = self.sessions_dir / session_id
         folder.mkdir(parents=True, exist_ok=True)

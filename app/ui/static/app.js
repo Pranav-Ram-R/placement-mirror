@@ -235,29 +235,6 @@ function renderPause(ev) {
   }
 }
 
-function onMessage(msg) {
-  const ev = JSON.parse(msg.data);
-  switch (ev.type) {
-    case "status": renderModels(ev.models, ev.notice); break;
-    case "detector_inputs": state.want = { face: ev.face, pose: ev.pose }; break;
-    case "busy": state.busy = ev.busy; break;
-    case "indicators": renderIndicators(ev); renderCalibration(ev.calibration); break;
-    case "calibration": renderCalibration(ev); break;
-    case "stats": renderStats(ev); break;
-    case "mode":
-      maxFps = ev.face_max_fps;
-      $("mode").textContent = ev.label;
-      $("mode").dataset.state = ev.mode === "npu" ? "good" : "bad";
-      break;
-    case "speech": renderSpeech(ev); break;
-    case "transcript": renderTranscript(ev); break;
-    case "pause": renderPause(ev); break;
-    case "audio": $("audio-source").textContent = `Listening: ${ev.source}`; break;
-    case "error": show($("error"), ev.message); break;
-    default: break;
-  }
-}
-
 // ---------------------------------------------------------------- session flow
 
 const session = { config: { replay: null, auto_stop_extra_s: 60 }, bank: null, state: "none", limitS: null,
@@ -321,6 +298,7 @@ function renderSessionState(ev) {
   if (ev.state !== "answering") stopTimer();
   if (ev.state === "processing" && session.config.replay) video.pause();
   if (ev.state === "answering") $("report-link").hidden = true;
+  if (ev.state !== "answering") stopEvalRecording();
   if (ev.state === "report" && ev.report_id) {
     $("report-anchor").href = `report.html?id=${encodeURIComponent(ev.report_id)}`;
     $("report-link").hidden = false;
@@ -369,6 +347,10 @@ function onMessage(msg) {
   switch (ev.type) {
     case "status": renderModels(ev.models, ev.notice); break;
     case "session_state": renderSessionState(ev); break;
+    case "eval_recording":
+      if (ev.state === "started") startEvalRecording(ev.session_id);
+      if (ev.state === "audio_saved") renderEvalStatus(ev.session_id, { audio: ev.audio.duration_s });
+      break;
     case "detector_inputs": state.want = { face: ev.face, pose: ev.pose }; break;
     case "busy": state.busy = ev.busy; break;
     case "indicators": renderIndicators(ev); renderCalibration(ev.calibration); break;
@@ -439,7 +421,56 @@ async function start() {
   }
 }
 
+// ---------------------------------------------------------------- eval recording (--record-eval only)
+
+// The server records the microphone. The browser records the camera stream it already
+// sends frames from, from the server's "first audio block of the answer" event (the
+// microphone starts late, 0.27 s on the development laptop) to the answer stop event, and
+// uploads the WebM after the stop. Both land in eval/recordings/<session id>/.
+const evalRec = { recorder: null, saved: {} };
+
+// Video and audio are saved separately (the upload can land before the WAV is closed).
+function renderEvalStatus(sessionId, part) {
+  const s = Object.assign(evalRec.saved[sessionId] || {}, part);
+  evalRec.saved[sessionId] = s;
+  const dur = (v) => (v === undefined ? "saving" : `${fmt(v, 2)} s`);
+  $("eval-status").textContent = `Eval recording in eval/recordings/${sessionId}: video ${dur(s.video)}, ` +
+    `audio ${dur(s.audio)}.`;
+}
+
+function startEvalRecording(sessionId) {
+  if (!state.stream || evalRec.recorder) return;
+  const mime = ["video/webm;codecs=vp8", "video/webm"].find((m) => MediaRecorder.isTypeSupported(m));
+  const recorder = new MediaRecorder(state.stream, mime ? { mimeType: mime } : {});
+  const chunks = [];
+  let startMs = null;
+  recorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+  recorder.onstart = (e) => { startMs = performance.timeOrigin + e.timeStamp; };
+  recorder.onstop = async (e) => {
+    const stopMs = performance.timeOrigin + e.timeStamp;
+    evalRec.recorder = null;
+    const type = recorder.mimeType || "video/webm";
+    const query = new URLSearchParams({ start_epoch_ms: startMs, stop_epoch_ms: stopMs, mime: type });
+    try {
+      const res = await fetch(`/api/eval/recordings/${encodeURIComponent(sessionId)}/video?${query}`,
+        { method: "POST", body: new Blob(chunks, { type }) });
+      if (!res.ok) throw new Error(`the server answered ${res.status}`);
+      const meta = await res.json();
+      renderEvalStatus(sessionId, { video: meta.video.duration_s });
+    } catch (err) {
+      show($("error"), `The eval video could not be saved: ${err.message}`);
+    }
+  };
+  recorder.start(1000); // 1 s chunks, so a long answer is not held as one buffer
+  evalRec.recorder = recorder;
+}
+
+function stopEvalRecording() {
+  if (evalRec.recorder && evalRec.recorder.state !== "inactive") evalRec.recorder.stop();
+}
+
 function stopCapture() {
+  stopEvalRecording();
   state.running = false;
   if (state.stream) state.stream.getTracks().forEach((t) => t.stop());
   state.stream = null;
@@ -496,6 +527,7 @@ async function init() {
     session.config = config;
     renderBank(bank);
     renderModels(status.models, status.notice);
+    $("eval-banner").hidden = !config.record_eval;
     if (config.replay) {
       $("start").textContent = "Load replay video";
       $("camera-heading").textContent = "Replay video";

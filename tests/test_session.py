@@ -94,7 +94,7 @@ class FakeAudio:
 def make_controller(tmp_path, cfg=SessionConfig(), audio=True):
     events, audios = [], []
 
-    def factory(emit, priority):
+    def factory(emit, priority, recorder=None):
         a = FakeAudio(start_mono=10.0)
         audios.append(a)
         return a

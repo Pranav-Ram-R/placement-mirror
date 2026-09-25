@@ -24,8 +24,15 @@ Transformers' built-in long-form mode was not used: it only applies a prompt to 
 window with condition_on_prev_tokens=True, and with that setting distil-small.en
 dropped the last 20 s of a 46 s test clip.
 
+Clips come from --clips-dir (every .wav, clip id = file name without .wav) and, with
+--source recordings or both, from the app's eval recordings (server flag --record-eval):
+the audio.wav of every folder in --recordings-dir, clip id = the recording's session id.
+labels.csv has one row per clip id (clip column) with um_count, uh_count and hmm_count.
+
 Usage:
   python eval/fillers/run_filler_test.py [--clips-dir eval/fillers] [--labels eval/fillers/labels.csv]
+                                         [--source clips|recordings|both]
+                                         [--recordings-dir eval/recordings]
                                          [--out-dir eval/fillers/results]
 """
 
@@ -50,6 +57,7 @@ import torch
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 
+from app.storage.recordings import RECORDINGS_DIR, list_recordings  # noqa: E402
 from benchmarks.schema import Measurement, Source, save_json  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
@@ -83,6 +91,17 @@ def read_wav(path: Path) -> np.ndarray:
         if fmt != (RATE, 1, 2):
             raise SystemExit(f"{path}: expected 16 kHz mono 16-bit PCM, got rate/channels/bytes {fmt}")
         return np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float32) / 32768.0
+
+
+def find_clips(source: str, clips_dir: Path, recordings_dir: Path) -> list[tuple[str, str, Path]]:
+    """(clip id, name shown in results, WAV path) for every clip of the chosen source."""
+    clips = []
+    if source in ("clips", "both"):
+        clips += [(p.stem, p.name, p) for p in sorted(clips_dir.glob("*.wav"))]
+    if source in ("recordings", "both"):
+        clips += [(r["id"], f"recordings/{r['id']}/audio.wav", r["audio"]) for r in list_recordings(recordings_dir)
+                  if r["audio"] is not None]
+    return clips
 
 
 def read_labels(path: Path) -> dict[str, dict[str, int]]:
@@ -165,17 +184,19 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--clips-dir", default=str(HERE))
     ap.add_argument("--labels", default=str(HERE / "labels.csv"))
+    ap.add_argument("--source", choices=["clips", "recordings", "both"], default="clips")
+    ap.add_argument("--recordings-dir", default=str(RECORDINGS_DIR))
     ap.add_argument("--out-dir", default=str(HERE / "results"))
     args = ap.parse_args()
 
     from transformers import WhisperForConditionalGeneration, WhisperProcessor
     import transformers
 
-    clips = sorted(Path(args.clips_dir).glob("*.wav"))
+    clips = find_clips(args.source, Path(args.clips_dir), Path(args.recordings_dir))
     labels = read_labels(Path(args.labels))
-    missing = [c.name for c in clips if c.stem not in labels]
+    missing = [cid for cid, _, _ in clips if cid not in labels]
     if not clips:
-        raise SystemExit(f"No .wav files in {args.clips_dir}")
+        raise SystemExit(f"No clips for --source {args.source} in {args.clips_dir} or {args.recordings_dir}")
     if missing:
         raise SystemExit(f"No labels for {missing} in {args.labels}")
     out_dir = Path(args.out_dir)
@@ -198,17 +219,17 @@ def main() -> int:
                                  "parameter_dtypes": dtypes, "english_only": english_only}
         print(f"\n== {model_id}: {checkpoint} (from {constant}), parameters {dtypes}")
         # One untimed warm-up call per model so lazy initialization is not in the first timing.
-        transcribe(model, processor, read_wav(clips[0])[: 5 * RATE], None, english_only)
+        transcribe(model, processor, read_wav(clips[0][2])[: 5 * RATE], None, english_only)
         for condition, prompt in CONDITIONS.items():
-            for clip in clips:
-                audio = read_wav(clip)
+            for cid, name, path in clips:
+                audio = read_wav(path)
                 r = transcribe(model, processor, audio, prompt, english_only)
                 found, by_type = count_fillers(r["text"])
-                lab = labels[clip.stem]
+                lab = labels[cid]
                 per_window = [token_counts(ids, processor.tokenizer) for ids in r["ids_per_window"]]
                 tokens = {k: sum(w[k] for w in per_window) for k in per_window[0]}
                 runs.append({
-                    "model": model_id, "checkpoint": checkpoint, "condition": condition, "clip": clip.name,
+                    "model": model_id, "checkpoint": checkpoint, "condition": condition, "clip": name,
                     "audio_seconds": round(len(audio) / RATE, 3), "windows_s": r["windows_s"],
                     "tokens_per_window": per_window, "transcript": r["text"], "fillers_found": found,
                     "found_by_type": by_type, "found_total": len(found), "labeled_by_type": lab,
@@ -217,12 +238,12 @@ def main() -> int:
                 measurements.append(Measurement(
                     model=checkpoint, metric="transcribe_wall_time", value=r["wall_s"] * 1000, unit="ms",
                     source=Source.LOCAL_X86_CPU, runtime="transformers", compute_unit="CPU", precision="float32",
-                    notes=(f"clip {clip.name} ({len(audio) / RATE:.1f} s audio), condition {condition}, "
+                    notes=(f"clip {name} ({len(audio) / RATE:.1f} s audio), condition {condition}, "
                            f"{len(r['windows_s'])} window(s), feature extraction + generate + decode, greedy, torch {torch.__version__}, "
                            f"transformers {transformers.__version__}, {torch.get_num_threads()} torch threads, "
                            f"CPU {platform.processor()}, one untimed warm-up call per model before timing"),
                 ))
-                print(f"   {condition:17} {clip.name:22} labeled {sum(lab.values()):3} found {len(found):3} "
+                print(f"   {condition:17} {name:22} labeled {sum(lab.values()):3} found {len(found):3} "
                       f"decoded tokens {tokens['decoded_tokens']:4}  {r['text'][:90]}")
 
     summary = []
@@ -250,7 +271,8 @@ def main() -> int:
                      "prompt": "prompt_ids on every window for the disfluent_prompt condition",
                      "previous_window_text": "not used",
                      "multilingual_forced": {"language": "en", "task": "transcribe"}},
-        "clips_dir": str(Path(args.clips_dir)), "labels_file": str(Path(args.labels)),
+        "clips_dir": str(Path(args.clips_dir)), "source": args.source, "recordings_dir": str(Path(args.recordings_dir)),
+        "labels_file": str(Path(args.labels)),
         "timings_file": str(out_dir / "filler_timings.json"),
         "summary": summary, "runs": runs,
     }
@@ -267,10 +289,10 @@ def main() -> int:
     conds = [(m, c) for m in MODELS for c in CONDITIONS]
     print("| clip | " + " | ".join(f"{m} {c}" for m, c in conds) + " |")
     print("|---|" + "---|" * len(conds))
-    for clip in clips:
-        row = [next(r["decoded_tokens"] for r in runs if r["clip"] == clip.name and r["model"] == m and r["condition"] == c)
+    for _, name, _ in clips:
+        row = [next(r["decoded_tokens"] for r in runs if r["clip"] == name and r["model"] == m and r["condition"] == c)
                for m, c in conds]
-        print(f"| {clip.name} | " + " | ".join(str(v) for v in row) + " |")
+        print(f"| {name} | " + " | ".join(str(v) for v in row) + " |")
     print(f"\nWrote {out_dir / 'filler_results.json'} and {len(measurements)} timing measurements to "
           f"{out_dir / 'filler_timings.json'}")
     return 0

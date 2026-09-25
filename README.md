@@ -68,6 +68,19 @@ video stage p50 and p95 and per segment audio timings are saved there (never the
 transcript). `--audio-file clip.wav` plays a 16 kHz mono recording instead of the
 microphone and `--no-audio` runs video only.
 
+Eval recording mode, for development: `--record-eval` saves each answer's camera video and
+microphone audio to `eval/recordings/<session id>/` (gitignored). The video is the
+browser's MediaRecorder WebM of the same camera stream the app analyzes, the audio a 16 kHz
+mono WAV of the same sounddevice stream. `recording.json` holds the question id, both
+streams' start times and their durations. The page shows a red RECORDING FOR EVAL banner.
+The mode is off by default, and without it the app writes no audio or video. The
+microphone delivers its first samples about 0.27 s after it starts on the development
+laptop, so the browser starts recording when the first audio block arrives. A recording
+replays with `--replay eval/recordings/<id>/video.webm eval/recordings/<id>/audio.wav`.
+`eval/fillers/run_filler_test.py --source recordings` and
+`eval/eye_contact/head_pose_test.py --recording <id>` read recordings too (labels by clip
+id, and for eye contact time ranges `start_s,end_s,label` in the recording's `labels.csv`).
+
 The Whisper parity tests (`tests/test_mel_parity.py`, `tests/test_decode_parity.py`) need
 transformers and torch. They skip with a message in `.venv-app` and run in `.venv-eval`
 (see Evaluation below). transformers and tokenizers are never app dependencies.

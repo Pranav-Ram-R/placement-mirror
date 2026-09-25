@@ -1,7 +1,8 @@
 """Audio pipeline for one session: capture, VAD, segment queue, ASR worker.
 
 - capture: MicCapture (sounddevice callback thread) or FileSource puts 32 ms blocks on a
-  queue
+  queue. With an eval recorder (server flag --record-eval only) every block is also
+  written to a WAV (app.storage.recordings.WavRecorder).
 - VAD thread: Silero VAD per block, segmentation, pause events
 - ASR worker: Whisper on each closed segment, transcript events, then live indicators
   (WPM, fillers) through app.analysis.live. Indicators are also sent every
@@ -42,7 +43,7 @@ def percentiles(values: list[float]) -> dict:
 
 class AudioPipeline:
     def __init__(self, runner, emit: Callable[[dict], None], cfg: AudioConfig = AUDIO, source_factory=None,
-                 priority: AsrPriority | None = None):
+                 priority: AsrPriority | None = None, recorder=None):
         self.runner = runner
         self.priority = priority or AsrPriority()
         self.emit = emit
@@ -52,7 +53,9 @@ class AudioPipeline:
         self.segmenter = Segmenter(SileroVad(runner, cfg.sample_rate), self.segments.put, self._event, cfg)
         self.whisper = Whisper(runner, cfg.use_prompt)
         self.live = LiveAnalysis(cfg)
-        self.source = source_factory(self.blocks.put) if source_factory else MicCapture(self.blocks.put, cfg)
+        self.recorder = recorder  # eval recording only, None in the normal app
+        on_block = self._record_and_queue if recorder is not None else self.blocks.put
+        self.source = source_factory(on_block) if source_factory else MicCapture(on_block, cfg)
         self.t0 = time.monotonic()
         self.records: list[dict] = []
         self.pauses: list[dict] = []
@@ -61,6 +64,10 @@ class AudioPipeline:
         self._vad_stop = threading.Event()
         self._vad_thread: threading.Thread | None = None
         self._threads: list[threading.Thread] = []
+
+    def _record_and_queue(self, block) -> None:
+        self.recorder.write(block)
+        self.blocks.put(block)
 
     def _rel(self, t_mono: float) -> float:
         return t_mono - self.t0

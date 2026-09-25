@@ -19,9 +19,17 @@ Analysis, using the labels written by record_scripted.py:
   and tested on frames from --split-s on
 - CAMERA vs SCREEN overlap in yaw and pitch
 
+Input: --video and --labels from record_scripted.py, or --recording with an app eval
+recording (server flag --record-eval): a folder under eval/recordings, or its session id.
+It uses the folder's video.webm and labels.csv. Labels are either one row per frame
+(frame, t_s, label, as record_scripted.py writes) or time ranges written by hand
+(start_s, end_s, label, seconds from the start of the video). With time ranges each frame
+is labeled by its timestamp in the video, and frames outside every range are skipped.
+
 Usage:
   python eval/eye_contact/head_pose_test.py --video <file> --labels <labels.csv>
                                             [--calib-s 3] [--split-s 30] [--out-dir eval/eye_contact/results]
+  python eval/eye_contact/head_pose_test.py --recording <session id or folder> [--labels <labels.csv>] ...
 """
 
 from __future__ import annotations
@@ -50,6 +58,7 @@ from app.vision.roi import (  # noqa: E402
     roi_corners,
     warp_affine_bilinear,
 )
+from app.storage.recordings import RECORDINGS_DIR  # noqa: E402
 from benchmarks.schema import Measurement, Source, save_json  # noqa: E402
 
 MODELS_DIR = REPO / "models" / "mediapipe_face" / "mediapipe_face-onnx-float"
@@ -166,9 +175,18 @@ class Pipeline:
         return {**result, "yaw": pose["yaw"], "pitch": pose["pitch"], "roll": pose["roll"], "times": t}
 
 
-def read_labels(path: Path) -> dict[int, tuple[float, str]]:
+def read_labels(path: Path):
+    """A function (frame index, frame time in the video) -> (t_s, label), or None to skip the frame."""
     with open(path, newline="", encoding="utf-8") as f:
-        return {int(r["frame"]): (float(r["t_s"]), r["label"]) for r in csv.DictReader(f)}
+        rows = list(csv.DictReader(f))
+    if rows and "frame" in rows[0]:  # one row per frame (record_scripted.py)
+        by_frame = {int(r["frame"]): (float(r["t_s"]), r["label"]) for r in rows}
+        return lambda idx, t: by_frame.get(idx)
+    ranges = [(float(r["start_s"]), float(r["end_s"]), r["label"]) for r in rows]  # time ranges
+
+    def by_time(idx: int, t: float):
+        return next(((t, label) for a, b, label in ranges if a <= t < b), None)
+    return by_time
 
 
 def segments_of(frames: list[dict]) -> list[dict]:
@@ -257,8 +275,9 @@ def plot(frames: list[dict], segs: list[dict], calib_end: float, threshold: floa
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--video", required=True)
-    ap.add_argument("--labels", required=True)
+    ap.add_argument("--video")
+    ap.add_argument("--labels")
+    ap.add_argument("--recording", help="an eval recording folder, or its session id under eval/recordings")
     ap.add_argument("--calib-s", type=float, default=3.0)
     ap.add_argument("--split-s", type=float, default=30.0)
     ap.add_argument("--models-dir", default=str(MODELS_DIR))
@@ -267,9 +286,17 @@ def main() -> int:
 
     import cv2  # eval only, used only to read the recorded video file
 
-    video, out_dir = Path(args.video), Path(args.out_dir)
+    if args.recording:
+        rec = Path(args.recording) if Path(args.recording).is_dir() else RECORDINGS_DIR / args.recording
+        video, tag = rec / "video.webm", rec.name
+        args.labels = args.labels or str(rec / "labels.csv")
+    elif args.video and args.labels:
+        video = Path(args.video)
+        tag = video.stem
+    else:
+        raise SystemExit("Give --video and --labels, or --recording")
+    out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
-    tag = video.stem
     labels = read_labels(Path(args.labels))
     pipe = Pipeline(Path(args.models_dir))
     cap = cv2.VideoCapture(str(video))
@@ -280,8 +307,9 @@ def main() -> int:
         ok, bgr = cap.read()
         if not ok:
             break
-        if idx in labels:
-            t_s, label = labels[idx]
+        hit = labels(idx, cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0)
+        if hit is not None:
+            t_s, label = hit
             r = pipe(np.ascontiguousarray(bgr[..., ::-1]))
             frames.append({"frame": idx, "t": t_s, "label": label, **r})
         idx += 1

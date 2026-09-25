@@ -77,8 +77,10 @@ models/*
 *.bin
 *.dlc
 recordings/
+eval/recordings/
 sessions/
 eval/**/*.wav
 eval/**/*.mp4
 eval/**/*.avi
+eval/**/*.webm
 eval/**/labels_private*

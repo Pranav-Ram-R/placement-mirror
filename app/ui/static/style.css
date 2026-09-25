@@ -74,6 +74,8 @@ dd[data-state="bad"] { color: var(--bad); }
 .notice, .error { padding: 0.6rem 0.8rem; border: 1px solid; border-radius: 4px; }
 .notice { border-color: #b58100; }
 .error { border-color: var(--bad); color: var(--bad); }
+.eval-banner { background: #b3261e; color: #fff; padding: 0.6rem 1rem; border-radius: 4px; flex-basis: 100%; }
+.eval-banner strong { font-size: 1.2rem; letter-spacing: 0.05em; margin-right: 0.5rem; }
 
 table { border-collapse: collapse; width: 100%; }
 th, td { text-align: left; border-bottom: 1px solid var(--line); padding: 0.3rem 0.5rem; vertical-align: top; }

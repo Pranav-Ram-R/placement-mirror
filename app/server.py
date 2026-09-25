@@ -7,6 +7,7 @@
 - GET /replay/video   the replay video file (replay mode only)
 - GET /api/sessions   saved answers with the history trend metrics (app.storage.history)
 - GET /api/sessions/{id}/report  one answer's report (app.analysis.report)
+- POST /api/eval/recordings/{id}/video  the browser's WebM of one answer (--record-eval only)
 - WS  /ws             one session (app.session.controller). Binary messages carry frames in
                       (app.vision.pipeline parse_frame). Text messages carry JSON commands
                       in (select_question, calibrate, start_answer, stop_answer, stop) and
@@ -15,6 +16,13 @@
 Replay mode (--replay VIDEO WAV, a development flag): the browser plays VIDEO in a video
 element as its frame source instead of the camera, and the server plays WAV instead of
 the microphone. Both start on the same start answer command.
+
+Eval recording mode (--record-eval, a development flag, off by default): each answer's
+microphone audio (the same sounddevice stream the pipeline uses) and the browser's
+MediaRecorder WebM of the camera stream are saved to eval/recordings/<session id>/
+(gitignored), with the question id and both streams' start times. The page shows a red
+RECORDING FOR EVAL banner. Without the flag the upload route answers 404 and no raw media
+is written.
 
 Models load once at startup through ModelRunner. Binds to 127.0.0.1 only and makes no
 network calls. One session at a time, because all sessions would share the same models
@@ -27,7 +35,7 @@ Measurement records. Transcript text is never saved.
 
 Usage: python -m app.server [--port 8000] [--stats-dir DIR] [--label "what the input was"]
                             [--audio-file clip.wav|clip.npy] [--no-audio]
-                            [--replay VIDEO WAV] [--data-dir DIR]
+                            [--replay VIDEO WAV] [--data-dir DIR] [--record-eval]
 """
 
 from __future__ import annotations
@@ -43,8 +51,7 @@ import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi import HTTPException
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -55,11 +62,12 @@ from app.runtime.priority import disable_power_throttling
 from app.runtime.runner import CPU_ONLY, ModelRunner
 from app.session.controller import SessionController
 from app.session.questions import default_bank
-from app.storage import history
+from app.storage import history, recordings
 from app.vision.pipeline import VISION_MODELS, VisionPipeline
 
 STATIC = Path(__file__).resolve().parent / "ui" / "static"
-SETTINGS = {"stats_dir": None, "label": "", "audio_file": None, "audio": True, "replay": None, "data_dir": None}
+SETTINGS = {"stats_dir": None, "label": "", "audio_file": None, "audio": True, "replay": None, "data_dir": None,
+            "record_eval": False}
 VIDEO_TYPES = {".webm": "video/webm", ".mp4": "video/mp4", ".ogv": "video/ogg"}
 STATE: dict = {"runner": None, "session_lock": threading.Lock()}
 
@@ -115,7 +123,25 @@ def replay_info() -> dict | None:
 
 @app.get("/api/config")
 def api_config() -> JSONResponse:
-    return JSONResponse({"replay": replay_info(), "auto_stop_extra_s": SESSION.auto_stop_extra_s})
+    return JSONResponse({"replay": replay_info(), "auto_stop_extra_s": SESSION.auto_stop_extra_s,
+                         "record_eval": SETTINGS["record_eval"]})
+
+
+@app.post("/api/eval/recordings/{session_id}/video")
+async def api_eval_video(session_id: str, request: Request, start_epoch_ms: float | None = None,
+                         stop_epoch_ms: float | None = None, mime: str = "video/webm") -> JSONResponse:
+    if not SETTINGS["record_eval"]:
+        raise HTTPException(status_code=404, detail="eval recording is off")
+    folder = recordings.RECORDINGS_DIR / session_id
+    if not history.SESSION_ID_RE.fullmatch(session_id) or not (folder / recordings.META).exists():
+        raise HTTPException(status_code=404, detail=f"no eval recording {session_id}")
+    data = await request.body()
+    meta = await asyncio.to_thread(recordings.save_video, folder, data, start_epoch_ms=start_epoch_ms,
+                                   stop_epoch_ms=stop_epoch_ms, mime=mime)
+    print(f"eval recording {session_id}: video {meta['video'].get('duration_s')} s, audio "
+          f"{(meta.get('audio') or {}).get('duration_s')} s, difference {meta.get('duration_difference_ms')} ms",
+          flush=True)
+    return JSONResponse(meta)
 
 
 @app.get("/api/sessions")
@@ -325,7 +351,8 @@ def audio_factory():
     if not SETTINGS["audio"]:
         return None
     source = audio_source_factory()
-    return lambda emit, priority: AudioPipeline(STATE["runner"], emit, source_factory=source, priority=priority)
+    return lambda emit, priority, recorder=None: AudioPipeline(STATE["runner"], emit, source_factory=source,
+                                                               priority=priority, recorder=recorder)
 
 
 def sessions_dir() -> Path | None:
@@ -351,7 +378,8 @@ async def session(ws: WebSocket) -> None:
             await ws.send_json(await events.get())
 
     controller = SessionController(STATE["runner"], emit, sessions_dir=sessions_dir(), audio_factory=audio_factory(),
-                                   replay=replay_info())
+                                   replay=replay_info(),
+                                   eval_recordings=recordings.RECORDINGS_DIR if SETTINGS["record_eval"] else None)
     await ws.send_json({"type": "status", **status_payload()})
     sender = asyncio.create_task(send_events())
     controller.start()
@@ -396,7 +424,12 @@ def main() -> int:
     ap.add_argument("--replay", nargs=2, type=Path, metavar=("VIDEO", "WAV"),
                     help="development: play VIDEO in the browser and WAV instead of the microphone")
     ap.add_argument("--data-dir", type=Path, help="session data folder (default %%LOCALAPPDATA%%\\PlacementMirror)")
+    ap.add_argument("--record-eval", action="store_true",
+                    help="development: save each answer's camera WebM and microphone WAV to eval/recordings")
     args = ap.parse_args()
+    if args.record_eval and (args.replay or args.audio_file or args.no_audio):
+        raise SystemExit("--record-eval records the camera and the microphone, so it cannot be combined with "
+                         "--replay, --audio-file or --no-audio")
     if args.replay:
         for f in args.replay:
             if not f.exists():
@@ -406,7 +439,9 @@ def main() -> int:
         load_audio_file(args.replay[1])  # fail now on a WAV that is not 16 kHz mono 16 bit
     SETTINGS.update(stats_dir=args.stats_dir, label=args.label, audio_file=args.audio_file, audio=not args.no_audio,
                     replay=tuple(str(f.resolve()) for f in args.replay) if args.replay else None,
-                    data_dir=args.data_dir)
+                    data_dir=args.data_dir, record_eval=args.record_eval)
+    if args.record_eval:
+        print(f"RECORDING FOR EVAL: answers are saved as video and audio to {recordings.RECORDINGS_DIR}", flush=True)
     # No keepalive pings: the socket is on localhost and the browser closes it with the tab.
     # With uvicorn's default (20 s ping, 20 s pong timeout) sessions closed at 40 s while
     # frames were streaming (2026-09-25 test), cause not found.
