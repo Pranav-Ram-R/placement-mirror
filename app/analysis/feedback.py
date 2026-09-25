@@ -1,7 +1,8 @@
 """Rule-based feedback: three improvements from the report metrics.
 
-Each measured metric is compared with its coaching guideline (config.ReportConfig). The
-guidelines are coaching targets, not measurements. Distance from a guideline is relative
+Each measured metric is compared with its guideline (config.ReportConfig). The guidelines
+are the author's coaching defaults, configurable, not validated against outcomes and not
+measurements. Distance from a guideline is relative
 to the limit it passes:
     upper limit: (value - high) / high
     lower limit: (low - value) / low

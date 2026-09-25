@@ -57,7 +57,7 @@ function renderImprovements(r) {
     const where = item.outside_guideline ? "Outside the guideline." : "Inside the guideline, near its limit.";
     const guide = document.createElement("span");
     guide.className = "guide-kind";
-    guide.textContent = `Guideline (${item.guideline.kind}): ${item.guideline.text}.`;
+    guide.textContent = `Author's coaching default: ${item.guideline.text}.`;
     const action = document.createElement("p");
     action.className = "action";
     action.textContent = `Action: ${item.action}`;
@@ -107,7 +107,7 @@ function range(values, unit) {
 }
 
 function guideSentence(g) {
-  return g ? ` Coaching guideline for ${g.label.toLowerCase()}, not a measurement: ${g.text}.` : "";
+  return g ? ` Guideline for ${g.label.toLowerCase()}: ${g.text}. ${g.kind}` : "";
 }
 
 function renderFacing(r) {

@@ -45,9 +45,9 @@ only, never audio or video). `--data-dir <dir>` moves that folder.
 
 After an answer, Open the report shows facing the camera, face not visible, posture and words
 per minute per 10 s window as charts with data tables, the transcript with fillers highlighted and long
-pauses inline, and three things to work on. Each metric is compared with a coaching
-guideline in `app/config.py` (`ReportConfig`). The guidelines are coaching targets, not
-measurements, and are provisional until reviewed. The History page lists every saved answer
+pauses inline, and three things to work on. Each metric is compared with a guideline in
+`app/config.py` (`ReportConfig`). Guidelines: Author's coaching defaults, configurable, not
+validated against outcomes. The History page lists every saved answer
 and the trend of facing the camera, words per minute, fillers per minute and long pauses.
 All pages and charts are served by the app. Nothing is loaded from the network.
 

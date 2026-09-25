@@ -23,7 +23,7 @@ function trendChart(metric, rows, guide) {
   const change = shown.length >= 2
     ? `${shown[0]} in the first measured answer and ${shown[shown.length - 1]} in the latest`
     : shown.length === 1 ? `${shown[0]} in the only measured answer` : "not measured yet";
-  const guideNote = guide ? ` Coaching guideline, not a measurement: ${guide.text}.` : "";
+  const guideNote = guide ? ` Guideline: ${guide.text}. ${guide.kind}` : "";
   box.append(h3, drawChart({
     label: `Line chart of ${metric.label.toLowerCase()} (${metric.unit}) over ${answers(n)}, ${change}.` +
       `${guideNote} The table of saved answers below lists every value.`,

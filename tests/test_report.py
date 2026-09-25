@@ -147,7 +147,8 @@ def test_three_improvements_ranked_by_distance_from_the_guideline(tmp_path):
     top = fb["improvements"]
     assert len(top) == 3 and top == fb["ranked"][:3]
     for item in top:
-        assert item["guideline"]["kind"] == GUIDELINE_KIND == "coaching guideline, not a measurement"
+        assert item["guideline"]["kind"] == GUIDELINE_KIND == (
+            "Author's coaching defaults, configurable, not validated against outcomes.")
         assert item["value"] is not None and item["action"] and item["outside_guideline"]
     assert top[0]["value"] == pytest.approx(7.2) and "um or uh" in top[0]["action"]
     assert top[0]["guideline"]["text"] == "at most 2 per minute"

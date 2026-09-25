@@ -138,7 +138,8 @@ class SessionConfig:
 SESSION = SessionConfig()
 
 
-GUIDELINE_KIND = "coaching guideline, not a measurement"
+# The label every guideline carries in the report, the pages and the README.
+GUIDELINE_KIND = "Author's coaching defaults, configurable, not validated against outcomes."
 
 
 @dataclass(frozen=True)
@@ -160,8 +161,8 @@ class ReportConfig:
     window_s: float = 10.0
     min_last_window_s: float = 5.0
 
-    # Coaching guidelines the feedback compares each metric with. These are coaching
-    # targets, not measurements. PROVISIONAL: chosen by the developer, need author review.
+    # Guidelines the feedback compares each metric with: the author's coaching defaults,
+    # configurable here, not validated against outcomes and not measurements.
     guidelines: tuple = (
         Guideline("facing_camera_pct", "Facing the camera", "% of the answer", low=70.0),
         Guideline("face_not_visible_pct", "Face not visible", "% of the answer", high=10.0),

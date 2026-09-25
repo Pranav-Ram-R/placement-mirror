@@ -102,6 +102,7 @@ main.page > section { margin-bottom: 2rem; }
 .improvements li { margin-bottom: 0.8rem; }
 .improvements .action { margin: 0.2rem 0 0; }
 .guide-kind { color: var(--muted); }
+.guide-label { border-left: 4px solid var(--guide); padding: 0.2rem 0 0.2rem 0.6rem; }
 caption { text-align: left; font-weight: 600; padding: 0.4rem 0; }
 .transcript-text { line-height: 1.8; }
 mark.filler { background: var(--mark); color: inherit; padding: 0 0.15em; border-radius: 2px; }
