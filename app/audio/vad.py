@@ -10,6 +10,7 @@ Segmentation per 32 ms block:
 - a segment ends after config.segment_end_silence_ms of silence, or when it reaches
   config.segment_max_s (then a new segment starts at once if speech continues)
 - config.speech_pad_ms of audio is kept before the start and after the end of speech
+  (durations are rounded up to whole 32 ms blocks: 200 ms is 7 blocks, 1000 ms is 32)
 - a pause event is sent once a silence after speech passes config.pause_min_s, and a
   pause end event with its length when speech starts again
 

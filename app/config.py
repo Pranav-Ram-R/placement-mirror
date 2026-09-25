@@ -85,15 +85,17 @@ class AudioConfig:
 
     # Silero VAD. threshold and neg_threshold (threshold - 0.15) are the silero-vad
     # VADIterator defaults: speech starts at a probability >= threshold and continues while
-    # it stays >= neg_threshold. speech_pad_ms is the silero-vad default padding kept
-    # before and after speech.
+    # it stays >= neg_threshold.
     vad_threshold: float = 0.5
     vad_neg_threshold: float = 0.35
-    speech_pad_ms: int = 30
-    # A segment ends after this much silence, or at segment_max_s.
-    segment_end_silence_ms: int = 700
-    segment_max_s: float = 25.0
+    # ASR segments (Checkpoint 3 decision): a segment ends after segment_end_silence_ms of
+    # silence or segment_max_s of audio, with speech_pad_ms of audio kept before and after
+    # the speech.
+    speech_pad_ms: int = 200
+    segment_end_silence_ms: int = 1000
+    segment_max_s: float = 20.0
     # A pause event is sent for a silence longer than this, after speech has started.
+    # Independent of the ASR segment settings.
     pause_min_s: float = 2.0
 
     # Whisper. use_prompt feeds the Task B filler prompt before the decoder prefix.

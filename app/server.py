@@ -37,6 +37,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.audio.pipeline import AUDIO_MODELS, AudioPipeline
+from app.config import AUDIO
 from app.runtime.priority import AsrPriority, disable_power_throttling
 from app.runtime.runner import CPU_ONLY, ModelRunner
 from app.vision.pipeline import VISION_MODELS, VisionPipeline
@@ -159,8 +160,8 @@ def print_audio_report(report: dict) -> None:
 
 AUDIO_METRICS = {  # report key -> (model, metric, unit, model whose placement and precision apply, how)
     "vad_latency_ms": ("audio_pipeline.vad", "vad_latency", "ms", "silero_vad",
-                       "segment closed by the VAD minus the end of its last speech block, includes the 700 ms "
-                       "end of segment silence"),
+                       "segment closed by the VAD minus the end of its last speech block, includes the "
+                       f"{AUDIO.segment_end_silence_ms} ms end of segment silence"),
     "encoder_ms": ("whisper_tiny_encoder", "encoder_time", "ms", "whisper_tiny_encoder",
                    "wall time of the encoder session.run"),
     "decoder_ms_per_token": ("whisper_tiny_decoder", "decoder_time_per_token", "ms", "whisper_tiny_decoder",

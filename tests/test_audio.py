@@ -32,35 +32,43 @@ def blocks(seconds):
     return int(round(seconds / BLOCK_S))
 
 
-def test_segment_ends_after_700_ms_of_silence_with_padding():
-    probs = [0.1] * 10 + [0.9] * blocks(1.0) + [0.1] * blocks(1.0)
+PAD = 7  # 200 ms of padding in 32 ms blocks, rounded up
+END = 32  # 1000 ms of silence in 32 ms blocks
+
+
+def test_segment_ends_after_1_s_of_silence_with_200_ms_padding():
+    assert (AUDIO.speech_pad_ms, AUDIO.segment_end_silence_ms, AUDIO.segment_max_s) == (200, 1000, 20.0)
+    probs = [0.1] * 10 + [0.9] * blocks(1.0) + [0.1] * (END - 1)
+    _, segments, _ = run(probs)
+    assert segments == []  # 31 silent blocks (992 ms) do not end it
+    probs = [0.1] * 10 + [0.9] * blocks(1.0) + [0.1] * END
     _, segments, _ = run(probs)
     assert len(segments) == 1
     s = segments[0]
     assert s.reason == "silence"
     speech_blocks = blocks(1.0)
-    # one pre-roll block, the speech, one block of padding after it (30 ms rounds up to 1 block)
-    assert s.blocks == 1 + speech_blocks + 1
-    assert s.audio[0] == 9 and s.audio[-1] == 10 + speech_blocks  # block values are their index
+    # 7 pre-roll blocks, the speech, 7 blocks of padding after it
+    assert s.blocks == PAD + speech_blocks + PAD
+    assert s.audio[0] == 10 - PAD and s.audio[-1] == 10 + speech_blocks + PAD - 1  # block values are their index
     last_speech = 10 + speech_blocks - 1
     assert s.speech_end_mono == pytest.approx((last_speech + 1) * BLOCK_S)
 
 
 def test_short_dips_do_not_end_a_segment_and_hysteresis_keeps_speech():
-    probs = [0.9] * 20 + [0.1] * 10 + [0.4] * 5 + [0.9] * 20 + [0.1] * blocks(1.0)
+    probs = [0.9] * 20 + [0.1] * 25 + [0.4] * 5 + [0.9] * 20 + [0.1] * blocks(1.1)
     _, segments, _ = run(probs)
-    assert len(segments) == 1  # 320 ms dip and 0.4 (above neg_threshold 0.35) keep it open
+    assert len(segments) == 1  # 800 ms dip and 0.4 (above neg_threshold 0.35) keep it open
 
 
-def test_segment_is_cut_at_25_s_and_continues():
-    probs = [0.9] * blocks(40.0) + [0.1] * blocks(1.0)
+def test_segment_is_cut_at_20_s_and_continues():
+    probs = [0.9] * blocks(30.0) + [0.1] * blocks(1.1)
     _, segments, _ = run(probs)
     assert [s.reason for s in segments] == ["max length", "silence"]
-    assert segments[0].audio.size / AUDIO.sample_rate == pytest.approx(25.0, abs=BLOCK_S * 2)
+    assert segments[0].audio.size / AUDIO.sample_rate == pytest.approx(20.0, abs=BLOCK_S * 2)
 
 
 def test_pause_events_for_silence_over_2_s():
-    probs = [0.1] * blocks(3.0) + [0.9] * 20 + [0.1] * blocks(2.5) + [0.9] * 20 + [0.1] * blocks(1.0)
+    probs = [0.1] * blocks(3.0) + [0.9] * 20 + [0.1] * blocks(2.5) + [0.9] * 20 + [0.1] * blocks(1.1)
     _, segments, events = run(probs)
     assert len(segments) == 2
     started = [e for e in events if e["state"] == "started"]
