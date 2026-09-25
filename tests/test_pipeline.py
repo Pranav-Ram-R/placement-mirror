@@ -206,17 +206,51 @@ def test_facing_flips_when_the_head_turns_away_after_calibration():
     assert ev["face"]["facing"] is True and abs(ev["face"]["yaw_change"]) < 1.0
 
 
-def test_posture_flips_on_slouch_after_calibration():
+def pose_after(pipe, start_i, t0):
+    """Process frames until one runs pose, return its event."""
+    for k in range(4):
+        ev = pipe.process(frame(start_i + k, t0 + k * 0.034))
+        if ev["pose_updated"]:
+            return ev
+    raise AssertionError("no pose frame")
+
+
+def test_slouching_and_leaning_are_separate_flags_after_calibration():
     runner = FakeRunner()
     pipe, _ = make(runner)
     calibrate(pipe, runner)
-    evs = [pipe.process(frame(i, 4.2 + (i - 21) * 0.033)) for i in (21, 22)]  # one of the two is a pose frame
-    ev = next(e for e in evs if e["pose_updated"])
-    assert ev["pose"]["posture"] == "ok"
+    ev = pose_after(pipe, 21, 4.2)
+    assert ev["pose"]["posture"] == "upright" and not ev["pose"]["slouching"] and not ev["pose"]["leaning"]
     runner.nose_y = 0.42  # nose drops toward the shoulders
-    for i in range(23, 25):
-        ev = pipe.process(frame(i, 4.2 + (i - 22) * 0.033))
-    assert ev["pose"]["posture"] == "check" and ev["pose"]["head_drop"] > VISION.posture_max_head_drop
+    ev = pose_after(pipe, 30, 5.0)
+    assert ev["pose"]["slouching"] and not ev["pose"]["leaning"] and ev["pose"]["posture"] == "slouching"
+    assert ev["pose"]["head_drop"] > VISION.slouch_max_head_drop
+
+
+def test_leaning_flag_and_the_worse_flag_is_named():
+    from app.vision.pipeline import posture_flags
+
+    base = {"tilt_deg": 0.0, "head_ratio": 0.6}
+    lean = posture_flags({"tilt_deg": 10.0, "head_ratio": 0.6}, base, VISION)
+    assert lean["leaning"] and not lean["slouching"] and lean["posture"] == "leaning"
+    both = posture_flags({"tilt_deg": 9.0, "head_ratio": 0.3}, base, VISION)  # lean 9/8, slouch 0.3/0.15
+    assert both["leaning"] and both["slouching"] and both["posture"] == "slouching"
+    both = posture_flags({"tilt_deg": 20.0, "head_ratio": 0.42}, base, VISION)  # lean 20/8, slouch 0.18/0.15
+    assert both["posture"] == "leaning"
+    up = posture_flags({"tilt_deg": -3.0, "head_ratio": 0.7}, base, VISION)  # head higher than calibration
+    assert up["posture"] == "upright" and up["slouch_ratio"] == 0.0
+
+
+def test_frame_log_has_both_flags_for_every_processed_frame():
+    runner = FakeRunner()
+    pipe, _ = make(runner)
+    calibrate(pipe, runner)
+    runner.nose_y = 0.42
+    pose_after(pipe, 21, 4.2)
+    assert len(pipe.frame_log) == pipe.counters.processed
+    last = pipe.frame_log[-1]
+    assert set(last) >= {"t", "facing", "yaw", "pitch", "slouching", "leaning"}
+    assert last["slouching"] is True and last["leaning"] is False and last["facing"] is True
 
 
 def test_calibration_without_a_face_reports_why():

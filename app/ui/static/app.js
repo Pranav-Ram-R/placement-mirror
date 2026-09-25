@@ -162,16 +162,17 @@ function renderIndicators(ev) {
   const pose = ev.pose;
   const posture = $("posture");
   if (pose && pose.posture) {
-    posture.textContent = pose.posture === "ok" ? "Upright" : "Check posture";
-    posture.dataset.state = pose.posture === "ok" ? "good" : "bad";
+    posture.textContent = { upright: "Upright", slouching: "Slouching", leaning: "Leaning" }[pose.posture];
+    posture.dataset.state = pose.posture === "upright" ? "good" : "bad";
   } else {
     posture.textContent = ev.calibration.pose ? `Unknown (${pose ? pose.state : "no pose yet"})` : "Not calibrated";
     posture.dataset.state = "unknown";
   }
   $("pose-detail").textContent = !pose
     ? "no pose yet"
-    : pose.score !== undefined
-      ? `${pose.state}, score ${fmt(pose.score, 2)}, shoulder tilt change ${fmt(pose.tilt_change_deg)} deg, head drop ${fmt(pose.head_drop, 3)}`
+    : pose.slouching !== undefined
+      ? `${pose.state}, slouching ${pose.slouching ? "yes" : "no"} (head drop ${fmt(pose.head_drop, 3)}), ` +
+        `leaning ${pose.leaning ? "yes" : "no"} (shoulder tilt change ${fmt(pose.tilt_change_deg)} deg)`
       : pose.state;
 }
 

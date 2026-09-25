@@ -22,8 +22,11 @@ crop, pose landmarks.
 Modes: NPU mode when every vision model runs on the NPU (face up to 30 fps, pose 15 fps).
 CPU fallback mode when any vision model runs on CPU: face up to 15 fps, pose 5 fps, pose
 frames skipped while the ASR worker transcribes, and the worker thread at below normal
-OS priority (app.runtime.priority). The browser is told the face rate. Posture score from shoulder tilt plus head drop relative to
-calibration (config, provisional).
+OS priority (app.runtime.priority). The browser is told the face rate.
+
+Posture: two flags relative to calibration, slouching (head drop) and leaning (shoulder
+tilt), each with its own threshold (config, provisional). Every processed frame is
+logged in frame_log (time, facing, yaw, pitch, slouching, leaning) for the report.
 
 Calibration: the first config.calibration_s seconds after the user presses Calibrate.
 """
@@ -173,12 +176,19 @@ def posture_metrics(nose: np.ndarray, left_shoulder: np.ndarray, right_shoulder:
             "shoulder_width_px": width}
 
 
-def posture_score(metrics: dict, baseline: dict, cfg: VisionConfig) -> dict:
+def posture_flags(metrics: dict, baseline: dict, cfg: VisionConfig) -> dict:
+    """slouching and leaning flags, each against its own threshold, and the worse one by name."""
     tilt = abs((metrics["tilt_deg"] - baseline["tilt_deg"] + 180.0) % 360.0 - 180.0)
     drop = baseline["head_ratio"] - metrics["head_ratio"]
-    score = tilt / cfg.posture_max_tilt_deg + max(0.0, drop) / cfg.posture_max_head_drop
-    return {"tilt_change_deg": tilt, "head_drop": drop, "score": score,
-            "posture": "ok" if score < cfg.posture_max_score else "check"}
+    slouch_ratio = max(0.0, drop) / cfg.slouch_max_head_drop
+    lean_ratio = tilt / cfg.lean_max_tilt_deg
+    slouching, leaning = slouch_ratio >= 1.0, lean_ratio >= 1.0
+    if slouching or leaning:
+        posture = "slouching" if (slouching and (not leaning or slouch_ratio >= lean_ratio)) else "leaning"
+    else:
+        posture = "upright"
+    return {"tilt_change_deg": tilt, "head_drop": drop, "slouch_ratio": slouch_ratio, "lean_ratio": lean_ratio,
+            "slouching": slouching, "leaning": leaning, "posture": posture}
 
 
 class Calibration:
@@ -278,6 +288,7 @@ class VisionPipeline:
         self.calibration = Calibration(cfg)
         self.track = FaceTrack()
         self.last_pose: dict | None = None
+        self.frame_log: list[dict] = []
         self.want = {"face": True, "pose": True}
         self._busy = False
         self._busy_lock = threading.Lock()
@@ -391,11 +402,17 @@ class VisionPipeline:
 
         done = time.monotonic()
         self._done_times = [t for t in self._done_times if t > done - 1.0] + [done]
+        pose = self._pose_indicator()
+        self.frame_log.append({
+            "t": frame.arrival, "frame_id": frame.frame_id, "face_state": face["state"], "facing": face.get("facing"),
+            "yaw": face.get("yaw"), "pitch": face.get("pitch"), "pose_updated": pose_frame,
+            "slouching": pose.get("slouching") if pose else None, "leaning": pose.get("leaning") if pose else None,
+        })
         self.times.add("total", time.perf_counter() - t_start)
         return {
             "type": "indicators", "frame_id": frame.frame_id, "capture_ms": frame.capture_ms,
             "server_latency_ms": (time.perf_counter() - frame.arrival_perf) * 1000, "processed_fps": len(self._done_times),
-            "face": face, "pose": self._pose_indicator(), "pose_updated": pose_frame,
+            "face": face, "pose": pose, "pose_updated": pose_frame,
             "calibration": self.calibration.as_dict(),
         }
 
@@ -503,7 +520,7 @@ class VisionPipeline:
         out["posture"] = None
         base = self.calibration.pose
         if base is not None and p.get("state") == "tracking":
-            out.update(posture_score(p, base, self.cfg))
+            out.update(posture_flags(p, base, self.cfg))
         return out
 
     # ------------------------------------------------------------------ report

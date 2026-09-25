@@ -63,14 +63,13 @@ class VisionConfig:
     pose_min_score: float = 0.5
     pose_min_visibility: float = 0.5
 
-    # Posture, relative to calibration. score = tilt_deg / posture_max_tilt_deg
-    # + max(0, head_drop) / posture_max_head_drop, where tilt_deg is the change in shoulder
-    # line angle and head_drop is the fall in (shoulder midpoint y - nose y) / shoulder
-    # width. Posture shows "check" when score >= posture_max_score.
+    # Posture: two independent flags relative to calibration (Checkpoint 3 decision).
+    # slouching: head_drop, the fall in (shoulder midpoint y - nose y) / shoulder width,
+    # reaches slouch_max_head_drop. leaning: the change in shoulder line angle reaches
+    # lean_max_tilt_deg. The UI names the worse one (larger value / threshold).
     # PROVISIONAL: not yet tested on real recordings.
-    posture_max_tilt_deg: float = 8.0
-    posture_max_head_drop: float = 0.15
-    posture_max_score: float = 1.0
+    slouch_max_head_drop: float = 0.15
+    lean_max_tilt_deg: float = 8.0
 
 
 VISION = VisionConfig()
