@@ -23,7 +23,7 @@ from typing import Callable
 
 import numpy as np
 
-from app.analysis.live import LiveAnalysis, find_fillers
+from app.analysis.live import LiveAnalysis, count_words, find_fillers
 from app.audio.capture import MicCapture
 from app.audio.vad import Segment, Segmenter, SileroVad
 from app.audio.whisper import Whisper
@@ -67,8 +67,9 @@ class AudioPipeline:
 
     def _event(self, event: dict) -> None:
         if event.get("type") == "pause":
-            event = {**event, "at_s": self._rel(event.pop("at"))}
+            event = {**event, "at_mono": event["at"], "at_s": self._rel(event.pop("at"))}
             if "since" in event:
+                event["since_mono"] = event["since"]
                 event["since_s"] = self._rel(event.pop("since"))
             self.pauses.append(event)
         self.emit(event)
@@ -132,6 +133,7 @@ class AudioPipeline:
         calls = len(tr.decoder_call_s)
         record = {
             "index": seg.index, "start_s": self._rel(seg.start_mono), "end_s": self._rel(seg.speech_end_mono),
+            "start_mono": seg.start_mono, "end_mono": seg.speech_end_mono, "word_count": count_words(tr.text),
             "audio_s": seg.duration_s, "closed_by": seg.reason, "text": tr.text, "fillers": find_fillers(tr.text),
             "token_count": len(tr.tokens), "decoder_calls": calls, "stopped": tr.stopped,
             "vad_latency_ms": (seg.closed_perf - seg.speech_end_perf) * 1000,

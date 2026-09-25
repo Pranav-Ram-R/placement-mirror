@@ -1,10 +1,18 @@
-"""Local web server: serves the UI and runs the vision and audio pipelines per WebSocket session.
+"""Local web server: serves the UI and runs one interview session per WebSocket.
 
-- GET /             the UI in app/ui/static/
-- GET /api/status   ModelRunner.status(): the real compute unit and load path per model
-- WS  /ws           one session. Binary messages carry frames in (app.vision.pipeline
-                    parse_frame). Text messages carry JSON commands in ({"type":
-                    "calibrate"} or {"type": "stop"}) and JSON events out.
+- GET /               the UI in app/ui/static/
+- GET /api/status     ModelRunner.status(): the real compute unit and load path per model
+- GET /api/questions  the question bank (questions/bank.json)
+- GET /api/config     replay mode settings for the browser
+- GET /replay/video   the replay video file (replay mode only)
+- WS  /ws             one session (app.session.controller). Binary messages carry frames in
+                      (app.vision.pipeline parse_frame). Text messages carry JSON commands
+                      in (select_question, calibrate, start_answer, stop_answer, stop) and
+                      JSON events out.
+
+Replay mode (--replay VIDEO WAV, a development flag): the browser plays VIDEO in a video
+element as its frame source instead of the camera, and the server plays WAV instead of
+the microphone. Both start on the same start answer command.
 
 Models load once at startup through ModelRunner. Binds to 127.0.0.1 only and makes no
 network calls. One session at a time, because all sessions would share the same models
@@ -17,6 +25,7 @@ Measurement records. Transcript text is never saved.
 
 Usage: python -m app.server [--port 8000] [--stats-dir DIR] [--label "what the input was"]
                             [--audio-file clip.wav|clip.npy] [--no-audio]
+                            [--replay VIDEO WAV] [--data-dir DIR]
 """
 
 from __future__ import annotations
@@ -33,17 +42,21 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from fastapi.responses import JSONResponse
+from fastapi import HTTPException
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.audio.pipeline import AUDIO_MODELS, AudioPipeline
-from app.config import AUDIO
-from app.runtime.priority import AsrPriority, disable_power_throttling
+from app.config import AUDIO, SESSION
+from app.runtime.priority import disable_power_throttling
 from app.runtime.runner import CPU_ONLY, ModelRunner
+from app.session.controller import SessionController
+from app.session.questions import default_bank
 from app.vision.pipeline import VISION_MODELS, VisionPipeline
 
 STATIC = Path(__file__).resolve().parent / "ui" / "static"
-SETTINGS = {"stats_dir": None, "label": "", "audio_file": None, "audio": True}
+SETTINGS = {"stats_dir": None, "label": "", "audio_file": None, "audio": True, "replay": None, "data_dir": None}
+VIDEO_TYPES = {".webm": "video/webm", ".mp4": "video/mp4", ".ogv": "video/ogg"}
 STATE: dict = {"runner": None, "session_lock": threading.Lock()}
 
 
@@ -81,6 +94,32 @@ app = FastAPI(lifespan=lifespan)
 @app.get("/api/status")
 def api_status() -> JSONResponse:
     return JSONResponse(status_payload())
+
+
+@app.get("/api/questions")
+def api_questions() -> JSONResponse:
+    bank = default_bank()
+    return JSONResponse({k: bank[k] for k in ("status", "categories", "questions")})
+
+
+def replay_info() -> dict | None:
+    if not SETTINGS["replay"]:
+        return None
+    video, wav = SETTINGS["replay"]
+    return {"video_url": "/replay/video", "video": Path(video).name, "audio": Path(wav).name}
+
+
+@app.get("/api/config")
+def api_config() -> JSONResponse:
+    return JSONResponse({"replay": replay_info(), "auto_stop_extra_s": SESSION.auto_stop_extra_s})
+
+
+@app.get("/replay/video")
+def replay_video() -> FileResponse:
+    if not SETTINGS["replay"]:
+        raise HTTPException(status_code=404, detail="not in replay mode")
+    path = Path(SETTINGS["replay"][0])
+    return FileResponse(path, media_type=VIDEO_TYPES.get(path.suffix.lower(), "application/octet-stream"))
 
 
 def measurement_source():
@@ -215,7 +254,7 @@ def save_audio_report(report: dict, status: dict, stats_dir: Path, stamp: str) -
     return path
 
 
-def finish(vision: VisionPipeline, audio: AudioPipeline | None, browser: dict) -> dict:
+def finish(vision: VisionPipeline, audio_runs: list, browser: dict) -> dict:
     stamp = dt.datetime.now().strftime("%Y-%m-%d_%H%M%S")
     stats_dir = Path(SETTINGS["stats_dir"]) if SETTINGS["stats_dir"] else None
     status = STATE["runner"].status()
@@ -225,13 +264,15 @@ def finish(vision: VisionPipeline, audio: AudioPipeline | None, browser: dict) -
         print_report(report)
         if stats_dir:
             print(f"saved stage measurements to {save_report(report, status, stats_dir, stamp)}", flush=True)
-    if audio is not None:
+    report["audio_runs"] = []
+    for i, audio in enumerate(audio_runs):
         audio_report = audio.report()
         print_audio_report(audio_report)
         if stats_dir and audio_report["segments"]:
-            print(f"saved audio measurements to {save_audio_report(audio_report, status, stats_dir, stamp)}", flush=True)
-        report["audio"] = {**audio_report,
-                           "segments": [{k: v for k, v in r.items() if k != "text"} for r in audio_report["segments"]]}
+            path = save_audio_report(audio_report, status, stats_dir, f"{stamp}_answer{i + 1}")
+            print(f"saved audio measurements to {path}", flush=True)
+        report["audio_runs"].append({**audio_report, "segments": [
+            {k: v for k, v in r.items() if k not in ("text", "fillers")} for r in audio_report["segments"]]})
     return report
 
 
@@ -252,13 +293,25 @@ def load_audio_file(path: Path):
 
 
 def audio_source_factory():
-    path = SETTINGS["audio_file"]
+    path = SETTINGS["replay"][1] if SETTINGS["replay"] else SETTINGS["audio_file"]
     if path is None:
         return None  # microphone
     from app.audio.capture import FileSource
 
     audio = load_audio_file(Path(path))
     return lambda put: FileSource(put, audio, f"file {Path(path).name} played in real time")
+
+
+def audio_factory():
+    """Builds the audio pipeline for each answer, or None when audio is off."""
+    if not SETTINGS["audio"]:
+        return None
+    source = audio_source_factory()
+    return lambda emit, priority: AudioPipeline(STATE["runner"], emit, source_factory=source, priority=priority)
+
+
+def sessions_dir() -> Path | None:
+    return Path(SETTINGS["data_dir"]) / "sessions" if SETTINGS["data_dir"] else None
 
 
 @app.websocket("/ws")
@@ -279,22 +332,12 @@ async def session(ws: WebSocket) -> None:
         while True:
             await ws.send_json(await events.get())
 
-    priority = AsrPriority()
-    vision = VisionPipeline(STATE["runner"], emit, priority=priority)
+    controller = SessionController(STATE["runner"], emit, sessions_dir=sessions_dir(), audio_factory=audio_factory(),
+                                   replay=replay_info())
     await ws.send_json({"type": "status", **status_payload()})
     sender = asyncio.create_task(send_events())
-    vision.start()
-    audio = None
-    if SETTINGS["audio"]:
-        try:
-            audio = AudioPipeline(STATE["runner"], emit, source_factory=audio_source_factory(), priority=priority)
-            audio.start()
-            emit({"type": "audio", "state": "running", "source": audio.source.describe()})
-        except Exception as e:  # noqa: BLE001  video keeps running without audio
-            audio = None
-            emit({"type": "error", "message": f"Audio could not start: {type(e).__name__}: {e}"})
+    controller.start()
     browser: dict = {}
-    stopped = False
     try:
         while True:
             msg = await ws.receive()
@@ -302,29 +345,20 @@ async def session(ws: WebSocket) -> None:
                 print(f"session closed by the client, code {msg.get('code')} {msg.get('reason') or ''}", flush=True)
                 break
             if msg.get("bytes") is not None:
-                vision.submit(msg["bytes"], time.monotonic(), time.perf_counter())
+                controller.vision.submit(msg["bytes"], time.monotonic(), time.perf_counter())
             elif msg.get("text") is not None:
                 cmd = json.loads(msg["text"])
-                if cmd.get("type") == "calibrate":
-                    vision.calibrate(time.monotonic())
-                elif cmd.get("type") == "stop":
+                if cmd.get("type") == "stop":  # end of the connection, with the browser's counters
                     browser = cmd.get("browser", {})
-                    await asyncio.to_thread(vision.stop)
-                    if audio is not None:
-                        await asyncio.to_thread(audio.stop)
-                    report = await asyncio.to_thread(finish, vision, audio, browser)
-                    stopped = True
-                    emit({"type": "stats", **report})
                     break
+                controller.command(cmd, time.monotonic())
     except WebSocketDisconnect:
         pass
     finally:
-        if not stopped:
-            await asyncio.to_thread(vision.stop)
-            if audio is not None:
-                await asyncio.to_thread(audio.stop)
-            await asyncio.to_thread(finish, vision, audio, browser)
-        await asyncio.sleep(0.1)  # let queued events go out
+        await asyncio.to_thread(controller.close)
+        report = await asyncio.to_thread(finish, controller.vision, controller.audio_runs, browser)
+        emit({"type": "stats", **report})
+        await asyncio.sleep(0.2)  # let queued events go out
         sender.cancel()
         lock.release()
 
@@ -341,8 +375,20 @@ def main() -> int:
     ap.add_argument("--label", default="", help="what the session input was, saved in the Measurement notes")
     ap.add_argument("--audio-file", type=Path, help="play this 16 kHz mono recording instead of the microphone")
     ap.add_argument("--no-audio", action="store_true", help="run the vision pipeline only")
+    ap.add_argument("--replay", nargs=2, type=Path, metavar=("VIDEO", "WAV"),
+                    help="development: play VIDEO in the browser and WAV instead of the microphone")
+    ap.add_argument("--data-dir", type=Path, help="session data folder (default %%LOCALAPPDATA%%\\PlacementMirror)")
     args = ap.parse_args()
-    SETTINGS.update(stats_dir=args.stats_dir, label=args.label, audio_file=args.audio_file, audio=not args.no_audio)
+    if args.replay:
+        for f in args.replay:
+            if not f.exists():
+                raise SystemExit(f"--replay: {f} not found")
+        if args.replay[0].suffix.lower() not in VIDEO_TYPES:
+            raise SystemExit(f"--replay: the browser plays {sorted(VIDEO_TYPES)} files, not {args.replay[0].suffix}")
+        load_audio_file(args.replay[1])  # fail now on a WAV that is not 16 kHz mono 16 bit
+    SETTINGS.update(stats_dir=args.stats_dir, label=args.label, audio_file=args.audio_file, audio=not args.no_audio,
+                    replay=tuple(str(f.resolve()) for f in args.replay) if args.replay else None,
+                    data_dir=args.data_dir)
     # No keepalive pings: the socket is on localhost and the browser closes it with the tab.
     # With uvicorn's default (20 s ping, 20 s pong timeout) sessions closed at 40 s while
     # frames were streaming (2026-09-25 test), cause not found.

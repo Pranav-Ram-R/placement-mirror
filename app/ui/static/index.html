@@ -10,21 +10,53 @@
 <header>
   <h1>Placement Mirror</h1>
   <p id="connection" role="status">Not connected</p>
+  <p id="replay-banner" class="notice" hidden></p>
 </header>
 
 <p id="notice" class="notice" role="alert" hidden></p>
 <p id="error" class="error" role="alert" hidden></p>
 
 <main>
+  <section aria-labelledby="session-heading" class="wide">
+    <h2 id="session-heading">Session</h2>
+    <p id="session-state" role="status" aria-live="polite">Start the camera to begin.</p>
+    <ol class="steps">
+      <li>
+        <h3>Choose a question</h3>
+        <p class="controls">
+          <label for="category">Category</label>
+          <select id="category"></select>
+          <label for="question">Question</label>
+          <select id="question"></select>
+          <button type="button" id="select-question" disabled>Use this question</button>
+        </p>
+        <p id="question-text" class="question"></p>
+        <p id="question-meta" class="muted"></p>
+        <p id="bank-status" class="muted"></p>
+      </li>
+      <li>
+        <h3>Calibrate</h3>
+        <p>Face the camera and sit straight as you would in the interview. Calibration takes 3 seconds.</p>
+        <p class="controls"><button type="button" id="calibrate" disabled>Calibrate</button></p>
+      </li>
+      <li>
+        <h3>Answer</h3>
+        <p class="controls">
+          <button type="button" id="start-answer" disabled>Start answer</button>
+          <button type="button" id="stop-answer" disabled>Stop answer</button>
+        </p>
+        <p id="answer-timer" role="timer" aria-live="off">0:00</p>
+      </li>
+    </ol>
+  </section>
+
   <section aria-labelledby="camera-heading">
     <h2 id="camera-heading">Camera</h2>
     <video id="preview" autoplay muted playsinline width="640" height="480"></video>
-    <p>
+    <p class="controls">
       <button type="button" id="start">Start camera</button>
-      <button type="button" id="calibrate" disabled>Calibrate</button>
-      <button type="button" id="stop" disabled>Stop</button>
+      <button type="button" id="stop" disabled>End session</button>
     </p>
-    <p id="calibration-help">Sit as you would in the interview, look at the camera and press Calibrate. Calibration takes 3 seconds.</p>
   </section>
 
   <section aria-labelledby="indicators-heading">
@@ -50,7 +82,7 @@
 
   <section aria-labelledby="speaking-heading">
     <h2 id="speaking-heading">Speaking</h2>
-    <p id="audio-source" role="status">Audio not started</p>
+    <p id="audio-source" role="status">Audio starts with the answer</p>
     <dl class="indicators">
       <div><dt>Words per minute (last 30 s)</dt><dd id="wpm">0</dd></div>
       <div><dt>Fillers</dt><dd id="fillers">0</dd></div>
@@ -64,7 +96,7 @@
     <ol id="transcript" class="transcript"></ol>
   </section>
 
-  <section aria-labelledby="models-heading">
+  <section aria-labelledby="models-heading" class="wide">
     <h2 id="models-heading">Where each model runs</h2>
     <table>
       <thead>
@@ -74,7 +106,7 @@
     </table>
   </section>
 
-  <section aria-labelledby="stats-heading" id="stats-section" hidden>
+  <section aria-labelledby="stats-heading" id="stats-section" class="wide" hidden>
     <h2 id="stats-heading">Session timings</h2>
     <p id="stats-summary"></p>
     <table>

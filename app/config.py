@@ -124,3 +124,15 @@ class RuntimeConfig:
 
 
 RUNTIME = RuntimeConfig()
+
+
+@dataclass(frozen=True)
+class SessionConfig:
+    # An answer stops by itself at the question's suggested_time_s plus this.
+    auto_stop_extra_s: float = 60.0
+    # A calibration counts when the face was calibrated. Posture needs the pose part too,
+    # and without it the session goes on with posture marked unavailable.
+    require_face_calibration: bool = True
+
+
+SESSION = SessionConfig()

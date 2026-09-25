@@ -198,7 +198,8 @@ function renderStats(ev) {
     }
     body.appendChild(tr);
   }
-  const a = ev.audio;
+  const runs = ev.audio_runs || [];
+  const a = runs[runs.length - 1];
   if (a && a.summary) {
     const s = a.summary;
     const p = (m) => (m && m.count ? `p50 ${fmt(m.p50, 0)} ms, p95 ${fmt(m.p95, 0)} ms` : "none");
@@ -257,6 +258,130 @@ function onMessage(msg) {
   }
 }
 
+// ---------------------------------------------------------------- session flow
+
+const session = { config: { replay: null, auto_stop_extra_s: 60 }, bank: null, state: "none", limitS: null,
+  answerStart: null, timer: null };
+
+const STATE_TEXT = {
+  choose_question: "Choose a question.",
+  calibrate: "Press Calibrate, then face the camera and sit straight for 3 seconds.",
+  ready: "Calibrated. Press Start answer when you are ready.",
+  answering: "Answering. Press Stop answer when you finish.",
+  processing: "Processing the answer.",
+  report: "Answer saved. Choose another question or calibrate again.",
+};
+
+function send(obj) {
+  if (state.ws && state.ws.readyState === WebSocket.OPEN) state.ws.send(JSON.stringify(obj));
+}
+
+function mmss(seconds) {
+  const s = Math.max(0, Math.floor(seconds));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+function updateButtons() {
+  const st = session.state;
+  const on = state.running;
+  $("select-question").disabled = !on || !["choose_question", "calibrate", "ready", "report"].includes(st);
+  $("calibrate").disabled = !on || !["calibrate", "ready", "report"].includes(st);
+  $("start-answer").disabled = !on || st !== "ready";
+  $("stop-answer").disabled = !on || st !== "answering";
+}
+
+function tickTimer() {
+  const s = (performance.now() - session.answerStart) / 1000;
+  $("answer-timer").textContent = `${mmss(s)} of ${mmss(session.limitS)}. The answer stops by itself at the limit.`;
+}
+
+function startTimer() {
+  session.answerStart = performance.now();
+  tickTimer();
+  session.timer = setInterval(tickTimer, 500);
+}
+
+function stopTimer() {
+  if (session.timer) clearInterval(session.timer);
+  session.timer = null;
+}
+
+function renderSessionState(ev) {
+  const prev = session.state;
+  session.state = ev.state;
+  session.limitS = ev.limit_s;
+  let text = STATE_TEXT[ev.state] || ev.state;
+  if (ev.message) text += ` ${ev.message}`;
+  if (ev.state === "report" && ev.summary) {
+    text += ` Recorded ${ev.summary.frames} video frames and ${ev.summary.segments} speech segments.`;
+  }
+  $("session-state").textContent = text;
+  if (ev.question) showQuestion(ev.question);
+  if (ev.state === "answering" && prev !== "answering") startTimer();
+  if (ev.state !== "answering") stopTimer();
+  if (ev.state === "processing" && session.config.replay) video.pause();
+  updateButtons();
+  // Move focus to the next action so the whole flow works from the keyboard.
+  const next = { calibrate: "calibrate", ready: "start-answer", answering: "stop-answer", report: "category" }[ev.state];
+  if (next && prev !== ev.state) $(next).focus();
+}
+
+function currentQuestion() {
+  return session.bank ? session.bank.questions.find((q) => q.id === $("question").value) : null;
+}
+
+function showQuestion(q) {
+  if (!q) return;
+  $("question-text").textContent = q.text;
+  $("question-meta").textContent = `${q.type === "behavioral" ? "Behavioral" : "Technical"} question. ` +
+    `Suggested time ${mmss(q.suggested_time_s)}. Stops by itself at ${mmss(q.suggested_time_s + session.config.auto_stop_extra_s)}.`;
+}
+
+function fillQuestions() {
+  const cat = $("category").value;
+  const select = $("question");
+  select.replaceChildren();
+  for (const q of session.bank.questions.filter((x) => x.category === cat)) {
+    select.add(new Option(`${q.id}  ${q.text.length > 70 ? q.text.slice(0, 67) + "..." : q.text}`, q.id));
+  }
+  showQuestion(currentQuestion());
+}
+
+function renderBank(bank) {
+  session.bank = bank;
+  const cat = $("category");
+  cat.replaceChildren();
+  for (const [id, label] of Object.entries(bank.categories)) cat.add(new Option(label, id));
+  fillQuestions();
+  $("bank-status").textContent = `Question bank status: ${bank.status}`;
+}
+
+// ---------------------------------------------------------------- connection and sources
+
+function onMessage(msg) {
+  const ev = JSON.parse(msg.data);
+  switch (ev.type) {
+    case "status": renderModels(ev.models, ev.notice); break;
+    case "session_state": renderSessionState(ev); break;
+    case "detector_inputs": state.want = { face: ev.face, pose: ev.pose }; break;
+    case "busy": state.busy = ev.busy; break;
+    case "indicators": renderIndicators(ev); renderCalibration(ev.calibration); break;
+    case "calibration": renderCalibration(ev); break;
+    case "stats": renderStats(ev); break;
+    case "mode":
+      maxFps = ev.face_max_fps;
+      $("mode").textContent = ev.label;
+      $("mode").dataset.state = ev.mode === "npu" ? "good" : "bad";
+      break;
+    case "speech": renderSpeech(ev); break;
+    case "transcript": renderTranscript(ev); break;
+    case "pause": renderPause(ev); break;
+    case "audio": $("audio-source").textContent = `Listening: ${ev.source}`; break;
+    case "error": show($("error"), ev.message); break;
+    default: break;
+  }
+}
+
 function connect() {
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(`ws://${location.host}/ws`);
@@ -268,21 +393,40 @@ function connect() {
   });
 }
 
+// Replay mode: the video file is the frame source. It stays paused except during
+// calibration (first seconds of the file) and the answer (from the start of the file).
+function loadReplayVideo() {
+  return new Promise((resolve, reject) => {
+    video.autoplay = false;
+    video.srcObject = null;
+    video.muted = true;
+    video.loop = false;
+    video.onloadeddata = () => { video.pause(); video.currentTime = 0; resolve(); };
+    video.onerror = () => reject(new Error("the replay video could not be loaded"));
+    video.src = session.config.replay.video_url;
+  });
+}
+
 async function start() {
   show($("error"), "");
   $("start").disabled = true;
   try {
-    state.stream = await navigator.mediaDevices.getUserMedia({
-      video: { width: { ideal: WIDTH }, height: { ideal: HEIGHT }, frameRate: { ideal: 30, max: 30 } },
-      audio: false,
-    });
-    video.srcObject = state.stream;
-    await video.play();
+    if (session.config.replay) {
+      await loadReplayVideo();
+    } else {
+      state.stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: WIDTH }, height: { ideal: HEIGHT }, frameRate: { ideal: 30, max: 30 } },
+        audio: false,
+      });
+      video.srcObject = state.stream;
+      await video.play();
+    }
     state.ws = await connect();
     Object.assign(state, { running: true, busy: false, frameId: 0, sentTimes: [], dropped: { busy: 0, buffered: 0 } });
-    $("calibrate").disabled = false;
     $("stop").disabled = false;
+    updateButtons();
     tick();
+    $("category").focus();
   } catch (err) {
     show($("error"), `Could not start: ${err.message}`);
     stopCapture();
@@ -294,24 +438,68 @@ function stopCapture() {
   if (state.stream) state.stream.getTracks().forEach((t) => t.stop());
   state.stream = null;
   video.srcObject = null;
+  if (session.config.replay) video.pause();
+  stopTimer();
   $("start").disabled = false;
-  $("calibrate").disabled = true;
   $("stop").disabled = true;
+  updateButtons();
 }
 
 function stop() {
-  const ws = state.ws;
+  send({ type: "stop", browser: { dropped_busy: state.dropped.busy, dropped_buffered: state.dropped.buffered,
+    frames_sent: state.frameId } });
   state.running = false;
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ type: "stop", browser: { dropped_busy: state.dropped.busy, dropped_buffered: state.dropped.buffered, frames_sent: state.frameId } }));
-  }
   stopCapture();
 }
 
 $("start").addEventListener("click", start);
 $("stop").addEventListener("click", stop);
+$("category").addEventListener("change", fillQuestions);
+$("question").addEventListener("change", () => showQuestion(currentQuestion()));
+$("select-question").addEventListener("click", () => {
+  const q = currentQuestion();
+  if (q) send({ type: "select_question", id: q.id });
+});
 $("calibrate").addEventListener("click", () => {
-  if (state.ws && state.ws.readyState === WebSocket.OPEN) state.ws.send(JSON.stringify({ type: "calibrate" }));
+  send({ type: "calibrate" });
+  if (session.config.replay) {
+    video.currentTime = 0;
+    video.play();
+    setTimeout(() => {
+      if (session.state !== "answering") { video.pause(); video.currentTime = 0; }
+    }, 3600);
+  }
+});
+$("start-answer").addEventListener("click", () => {
+  send({ type: "start_answer" });
+  $("transcript").replaceChildren();
+  if (session.config.replay) { video.currentTime = 0; video.play(); }
+});
+$("stop-answer").addEventListener("click", () => {
+  send({ type: "stop_answer" });
+  if (session.config.replay) video.pause();
+});
+video.addEventListener("ended", () => {
+  if (session.config.replay && session.state === "answering") send({ type: "stop_answer", reason: "end of replay video" });
 });
 
-fetch("/api/status").then((r) => r.json()).then((s) => renderModels(s.models, s.notice)).catch(() => {});
+async function init() {
+  try {
+    const [config, bank, status] = await Promise.all(
+      ["/api/config", "/api/questions", "/api/status"].map((u) => fetch(u).then((r) => r.json())));
+    session.config = config;
+    renderBank(bank);
+    renderModels(status.models, status.notice);
+    if (config.replay) {
+      $("start").textContent = "Load replay video";
+      $("camera-heading").textContent = "Replay video";
+      show($("replay-banner"), `Replay mode: ${config.replay.video} and ${config.replay.audio} play from the start ` +
+        "when you press Start answer.");
+    }
+  } catch (err) {
+    show($("error"), `Could not load the app settings: ${err.message}`);
+  }
+  updateButtons();
+}
+
+init();

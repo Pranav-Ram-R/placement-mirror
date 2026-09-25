@@ -36,8 +36,17 @@ To run the app, start the server and open http://127.0.0.1:8000 in Edge:
 .venv-app\Scripts\python -m app.server
 ```
 
-Press Start camera, then Calibrate while sitting as in an interview and looking at the
-camera. Audio comes from the default microphone. With `--stats-dir <dir>` each session's
+Press Start camera, choose a question, press Calibrate while sitting as in an interview and
+looking at the camera, then Start answer and Stop answer. An answer also stops by itself at
+the question's suggested time plus 60 s. Audio comes from the default microphone and runs
+only during the answer. Each answer is saved as `timeline.json` under
+`%LOCALAPPDATA%\PlacementMirror\sessions\<session id>\` (metrics and transcript text
+only, never audio or video). `--data-dir <dir>` moves that folder.
+
+Replay mode, for development: `--replay <video> <wav>` makes the browser play the video
+file instead of the camera and the server play the WAV (16 kHz mono 16 bit) instead of the
+microphone. Both start from the beginning on Start answer, and the answer stops when the
+video ends. The video must be a format Edge plays (WebM VP8 or VP9, or MP4 H.264). With `--stats-dir <dir>` each session's
 video stage p50 and p95 and per segment audio timings are saved there (never the
 transcript). `--audio-file clip.wav` plays a 16 kHz mono recording instead of the
 microphone and `--no-audio` runs video only.

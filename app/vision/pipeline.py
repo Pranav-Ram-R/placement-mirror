@@ -1,5 +1,5 @@
-"""Vision pipeline for one session: face landmarks and head pose on every frame, pose on
-every other frame.
+"""Vision pipeline for one session: face landmarks and head pose on every accepted frame,
+pose at the mode's pose rate.
 
 Frames come from the browser over the session WebSocket (see parse_frame for the binary
 format). Each frame is stamped with time.monotonic() on arrival and put in a single slot

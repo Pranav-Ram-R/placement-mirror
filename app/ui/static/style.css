@@ -30,7 +30,7 @@ main {
   gap: 1.5rem;
 }
 
-main > section:nth-child(n + 5) { grid-column: 1 / -1; }
+main > section.wide { grid-column: 1 / -1; }
 
 @media (max-width: 900px) {
   main { grid-template-columns: minmax(0, 1fr); }
@@ -61,3 +61,11 @@ th, td { text-align: left; border-bottom: 1px solid var(--line); padding: 0.3rem
 
 .transcript { max-height: 16rem; overflow-y: auto; margin: 0; padding-left: 1.5rem; }
 .transcript li { margin-bottom: 0.3rem; }
+
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; padding-left: 1.2rem; }
+.steps h3 { font-size: 1rem; margin: 0 0 0.4rem; }
+.controls { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+select { font: inherit; max-width: 100%; }
+.question { font-weight: 600; }
+.muted { color: var(--muted); }
+button:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid #4a90d9; outline-offset: 2px; }
