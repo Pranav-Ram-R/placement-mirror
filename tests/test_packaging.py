@@ -110,6 +110,7 @@ def test_third_party_licenses_cover_the_models_and_every_package_given():
         assert heading in text
     assert "models/whisper_tiny_decoder/onnx/model.onnx" in text and "Copyright (c) 2020-present Silero Team" in text
     assert "—" not in text.split("## Python packages")[0]  # our own text (CLAUDE.md rule 8)
+    assert "\r" not in text
 
 
 def test_requirement_closure_includes_every_requirement():

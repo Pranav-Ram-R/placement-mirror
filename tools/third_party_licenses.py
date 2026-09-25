@@ -63,6 +63,8 @@ MODELS = [
 
 
 def fence(text: str) -> str:
+    # Line endings normalized, so the file is the same whichever line endings a license file uses.
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
     return f"````text\n{text.rstrip()}\n````\n"
 
 
