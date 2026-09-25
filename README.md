@@ -12,9 +12,9 @@ requires onnxruntime 1.22.1 or older, and onnxruntime-qnn 2.6.0 requires onnxrun
 
 | venv | requirements | used for | platforms |
 |---|---|---|---|
-| `.venv-app` | `requirements.txt` | the app, `app.runtime.runner --check`, tests | Windows ARM64 and x64 |
+| `.venv-app` | `requirements.txt` | the app, `app.runtime.runner --check`, tests except the Whisper parity tests | Windows ARM64 and x64 |
 | `.venv-aihub` | `requirements-aihub.txt` | `aihub/` scripts: submit and collect AI Hub jobs, fetch models | Windows x64 |
-| `.venv-eval` | `eval/requirements.txt` | `eval/` scripts: filler and eye contact evaluation | Windows x64 |
+| `.venv-eval` | `eval/requirements.txt` | `eval/` scripts, `tools/make_whisper_assets.py`, the Whisper parity tests | Windows x64 |
 
 ### App
 
@@ -43,8 +43,8 @@ transcript). `--audio-file clip.wav` plays a 16 kHz mono recording instead of th
 microphone and `--no-audio` runs video only.
 
 The Whisper parity tests (`tests/test_mel_parity.py`, `tests/test_decode_parity.py`) need
-transformers and torch, so they skip in `.venv-app`. Run them where the eval requirements
-and pytest are installed.
+transformers and torch. They skip with a message in `.venv-app` and run in `.venv-eval`
+(see Evaluation below). transformers and tokenizers are never app dependencies.
 
 ### AI Hub tools
 
@@ -58,7 +58,8 @@ py -3.11 -m venv .venv-aihub
 ```
 
 `aihub.fetch_models` downloads the compiled models into `models/` and writes
-`models/manifest.json`. Only the manifest is committed.
+`models/manifest.json`. Only the manifest is committed. torch is pinned to 2.10.0, the
+version the AI Hub models were exported with.
 
 ### Evaluation
 
@@ -67,4 +68,8 @@ x64 only. Versions are pinned because evaluation results depend on them.
 ```powershell
 py -3.11 -m venv .venv-eval
 .venv-eval\Scripts\python -m pip install -r eval\requirements.txt
+.venv-eval\Scripts\python -m pytest tests/test_mel_parity.py tests/test_decode_parity.py
 ```
+
+The parity tests also need the models in `models/` and the qai_hub_models Whisper sample
+audio (`jfk.npz`) in the local asset cache.
