@@ -28,6 +28,31 @@ jobs:
       - name: Check dependencies
         run: python ci/check_deps.py
 
+      # requirements.txt as a whole in one venv, after the per-package checks above.
+      - name: Create app venv
+        if: always()
+        run: python -m venv .venv-app
+
+      - name: Install requirements.txt
+        if: always()
+        run: .venv-app\Scripts\python -m pip install --no-input -r requirements.txt
+
+      - name: List installed versions
+        if: always()
+        run: .venv-app\Scripts\python -m pip freeze
+
+      - name: Import every app dependency together
+        if: always()
+        run: .venv-app\Scripts\python -c "import numpy, onnxruntime, onnxruntime_qnn, fastapi, uvicorn, sounddevice; print('onnxruntime', onnxruntime.__version__, 'onnxruntime_qnn', onnxruntime_qnn.__version__)"
+
+      - name: Import the app package
+        if: always()
+        run: .venv-app\Scripts\python -c "import app.runtime.runner"
+
+      - name: QNN devices seen by the app runner
+        if: always()
+        run: .venv-app\Scripts\python -c "from app.runtime.runner import QnnBackend; b = QnnBackend(); print('listing', b.listing); print('NPU available', b.available, 'reason', b.reason)"
+
       - name: Add report to job summary
         if: always()
         run: Get-Content ci/deps_report.md | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY

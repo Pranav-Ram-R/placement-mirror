@@ -1,4 +1,10 @@
-# ARM64 support verified Day 1
-numpy
-qai-hub
-qai-hub-models
+# App runtime dependencies. Install in the app venv (see README, Development setup).
+# Each package installed alone and imported on native Windows ARM64 Python 3.11 by
+# ci/check_deps.py, arm64-deps run 36101803021 (2026-09-25). Pinned to the versions
+# that run installed. onnxruntime-qnn 2.6.0 bundles QAIRT 2.50.40 and pulls
+# onnxruntime 1.30.0 there.
+numpy==2.4.6
+onnxruntime-qnn==2.6.0
+fastapi==0.141.1
+uvicorn==0.53.0
+sounddevice==0.5.6
