@@ -1,0 +1,253 @@
+{
+  "source": "microphone Microphone Array (Realtek(R) Au",
+  "duration_s": 125.29700000000594,
+  "blocks": 3613,
+  "segments": [
+    {
+      "index": 0,
+      "start_s": 82.48399999999674,
+      "end_s": 82.90600000000268,
+      "audio_s": 0.448,
+      "closed_by": "silence",
+      "token_count": 3,
+      "decoder_calls": 7,
+      "stopped": "end of text",
+      "vad_latency_ms": 700.1163000095403,
+      "asr_queue_wait_ms": 27.143599989358336,
+      "mel_ms": 198.01979999465402,
+      "encoder_ms": 1612.6834000024246,
+      "decoder_ms_total": 324.02970003022347,
+      "decoder_ms_per_token": 46.28995714717478,
+      "end_to_end_delay_ms": 2863.378100009868
+    },
+    {
+      "index": 1,
+      "start_s": 85.13999999999942,
+      "end_s": 85.40600000000268,
+      "audio_s": 0.256,
+      "closed_by": "silence",
+      "token_count": 4,
+      "decoder_calls": 8,
+      "stopped": "end of text",
+      "vad_latency_ms": 665.2140000078361,
+      "asr_queue_wait_ms": 0.0754999928176403,
+      "mel_ms": 314.7956000029808,
+      "encoder_ms": 1787.9089000052772,
+      "decoder_ms_total": 312.95950000640005,
+      "decoder_ms_per_token": 39.119937500800006,
+      "end_to_end_delay_ms": 3082.6763000077335
+    },
+    {
+      "index": 2,
+      "start_s": 86.79599999998754,
+      "end_s": 88.31299999999464,
+      "audio_s": 1.536,
+      "closed_by": "silence",
+      "token_count": 3,
+      "decoder_calls": 7,
+      "stopped": "end of text",
+      "vad_latency_ms": 700.7236000063131,
+      "asr_queue_wait_ms": 0.3471999953035265,
+      "mel_ms": 312.65690000145696,
+      "encoder_ms": 1746.0660000069765,
+      "decoder_ms_total": 360.2361000084784,
+      "decoder_ms_per_token": 51.4623000012112,
+      "end_to_end_delay_ms": 3121.420700001181
+    },
+    {
+      "index": 3,
+      "start_s": 89.65599999998813,
+      "end_s": 89.93799999999464,
+      "audio_s": 0.32,
+      "closed_by": "silence",
+      "token_count": 1,
+      "decoder_calls": 5,
+      "stopped": "end of text",
+      "vad_latency_ms": 700.7991999998922,
+      "asr_queue_wait_ms": 791.9729999994161,
+      "mel_ms": 359.20530000294093,
+      "encoder_ms": 1860.2175999985775,
+      "decoder_ms_total": 121.32080001174472,
+      "decoder_ms_per_token": 24.264160002348945,
+      "end_to_end_delay_ms": 3834.9424000043655
+    },
+    {
+      "index": 4,
+      "start_s": 97.07799999999406,
+      "end_s": 99.18799999999464,
+      "audio_s": 2.144,
+      "closed_by": "silence",
+      "token_count": 11,
+      "decoder_calls": 15,
+      "stopped": "end of text",
+      "vad_latency_ms": 701.5435999928741,
+      "asr_queue_wait_ms": 0.06460001168306917,
+      "mel_ms": 197.15989999531303,
+      "encoder_ms": 977.1479000046384,
+      "decoder_ms_total": 833.4367999923415,
+      "decoder_ms_per_token": 55.56245333282277,
+      "end_to_end_delay_ms": 2712.2680000029504
+    },
+    {
+      "index": 5,
+      "start_s": 100.03099999998813,
+      "end_s": 102.90600000000268,
+      "audio_s": 2.912,
+      "closed_by": "silence",
+      "token_count": 6,
+      "decoder_calls": 10,
+      "stopped": "end of text",
+      "vad_latency_ms": 700.7770999916829,
+      "asr_queue_wait_ms": 0.05950000195298344,
+      "mel_ms": 265.15870000002906,
+      "encoder_ms": 1145.3972999879625,
+      "decoder_ms_total": 419.2600000096718,
+      "decoder_ms_per_token": 41.92600000096718,
+      "end_to_end_delay_ms": 2532.804499991471
+    },
+    {
+      "index": 6,
+      "start_s": 105.10899999999674,
+      "end_s": 106.82799999999406,
+      "audio_s": 1.76,
+      "closed_by": "silence",
+      "token_count": 11,
+      "decoder_calls": 15,
+      "stopped": "end of text",
+      "vad_latency_ms": 710.8223999966867,
+      "asr_queue_wait_ms": 0.04870000702794641,
+      "mel_ms": 223.43460000411142,
+      "encoder_ms": 1130.2667999989353,
+      "decoder_ms_total": 601.5122000098927,
+      "decoder_ms_per_token": 40.100813333992846,
+      "end_to_end_delay_ms": 2668.819500002428
+    },
+    {
+      "index": 7,
+      "start_s": 109.46799999999348,
+      "end_s": 116.03100000000268,
+      "audio_s": 6.592,
+      "closed_by": "silence",
+      "token_count": 24,
+      "decoder_calls": 28,
+      "stopped": "end of text",
+      "vad_latency_ms": 700.799599988386,
+      "asr_queue_wait_ms": 0.0585000088904053,
+      "mel_ms": 207.69660000223666,
+      "encoder_ms": 898.2372000027681,
+      "decoder_ms_total": 1251.0201999830315,
+      "decoder_ms_per_token": 44.67929285653684,
+      "end_to_end_delay_ms": 3063.7213999871165
+    }
+  ],
+  "pauses": [
+    {
+      "type": "pause",
+      "state": "started",
+      "at": 95106.687,
+      "at_s": 84.92200000000594,
+      "since_s": 82.90600000000268
+    },
+    {
+      "type": "pause",
+      "state": "ended",
+      "at": 95106.968,
+      "duration_s": 2.264999999984866,
+      "at_s": 85.20299999999406
+    },
+    {
+      "type": "pause",
+      "state": "started",
+      "at": 95113.718,
+      "at_s": 91.95299999999406,
+      "since_s": 89.93799999999464
+    },
+    {
+      "type": "pause",
+      "state": "ended",
+      "at": 95118.906,
+      "duration_s": 7.1710000000020955,
+      "at_s": 97.14100000000326
+    },
+    {
+      "type": "pause",
+      "state": "started",
+      "at": 95126.687,
+      "at_s": 104.92200000000594,
+      "since_s": 102.90600000000268
+    },
+    {
+      "type": "pause",
+      "state": "ended",
+      "at": 95126.937,
+      "duration_s": 2.2339999999967404,
+      "at_s": 105.17200000000594
+    },
+    {
+      "type": "pause",
+      "state": "started",
+      "at": 95130.593,
+      "at_s": 108.82799999999406,
+      "since_s": 106.82799999999406
+    },
+    {
+      "type": "pause",
+      "state": "ended",
+      "at": 95131.296,
+      "duration_s": 2.6710000000020955,
+      "at_s": 109.53100000000268
+    },
+    {
+      "type": "pause",
+      "state": "started",
+      "at": 95139.796,
+      "at_s": 118.03100000000268,
+      "since_s": 116.03100000000268
+    }
+  ],
+  "vad_call_ms": {
+    "count": 3613,
+    "p50": 0.5298000032780692,
+    "p95": 0.7334399968385696
+  },
+  "summary": {
+    "vad_latency_ms": {
+      "count": 8,
+      "p50": 700.7881499957875,
+      "p95": 707.5748199953523
+    },
+    "encoder_ms": {
+      "count": 8,
+      "p50": 1379.0403499951935,
+      "p95": 1834.9095550009224
+    },
+    "decoder_ms_per_token": {
+      "count": 8,
+      "p50": 43.30264642875201,
+      "p95": 54.12739966675872
+    },
+    "token_count": {
+      "count": 8,
+      "p50": 5.0,
+      "p95": 19.449999999999992
+    },
+    "end_to_end_delay_ms": {
+      "count": 8,
+      "p50": 2963.549749998492,
+      "p95": 3585.2098050032505
+    },
+    "mel_ms": {
+      "count": 8,
+      "p50": 244.29665000207024,
+      "p95": 343.6619050029549
+    },
+    "asr_queue_wait_ms": {
+      "count": 8,
+      "p50": 0.07005000225035474,
+      "p95": 524.2827099958954
+    }
+  },
+  "words_total": 53,
+  "filler_count": 0,
+  "use_prompt": false
+}
