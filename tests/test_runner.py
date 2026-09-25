@@ -55,9 +55,11 @@ class FakeQnn:
         self.error = error
         self.providers = providers
         self.calls = []
+        self.options = []
 
-    def session(self, path, config):
+    def session(self, path, config, so=None):
         self.calls.append((Path(path), dict(config)))
+        self.options.append(so)
         if self.error:
             raise self.error
         return FakeSession(path, self.providers)
@@ -208,3 +210,22 @@ def test_only_npu_type_qnn_devices_are_kept(monkeypatch):
     npu = FakeEpDevice(QNN_EP, "NPU")
     backend = QnnBackend(FakeOrt([FakeEpDevice(QNN_EP, "CPU"), FakeEpDevice(QNN_EP, "GPU"), npu]))
     assert backend.available and backend.devices == [npu] and backend.reason is None
+
+
+def test_every_session_gets_the_configured_threads(tmp_path):
+    from app.config import RuntimeConfig
+
+    runtime = RuntimeConfig(intra_op_threads={"m1": 3}, inter_op_threads=1, intra_op_allow_spinning="0")
+    runner = ModelRunner(make_manifest(tmp_path), qnn=FakeQnn(available=False, reason="No QNN devices listed"),
+                         cache_dir=tmp_path / "cache", runtime=runtime)
+    st = runner.load("m1")
+    opts = runner.sessions["m1"].get_session_options()
+    assert (opts.intra_op_num_threads, opts.inter_op_num_threads) == (3, 1)
+    assert opts.get_session_config_entry("session.intra_op.allow_spinning") == "0"
+    assert st.threads == {"intra_op_num_threads": 3, "inter_op_num_threads": 1, "session.intra_op.allow_spinning": "0"}
+    # the QNN steps get the same options
+    qnn = FakeQnn()
+    runner = ModelRunner(make_manifest(tmp_path / "q"), qnn=qnn, cache_dir=tmp_path / "cache2", runtime=runtime)
+    runner.load("m1")
+    assert qnn.options[0].intra_op_num_threads == 3
+    assert qnn.options[0].get_session_config_entry("session.intra_op.allow_spinning") == "0"

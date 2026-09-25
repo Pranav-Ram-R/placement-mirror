@@ -37,6 +37,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.audio.pipeline import AUDIO_MODELS, AudioPipeline
+from app.runtime.priority import AsrPriority, disable_power_throttling
 from app.runtime.runner import CPU_ONLY, ModelRunner
 from app.vision.pipeline import VISION_MODELS, VisionPipeline
 
@@ -61,6 +62,7 @@ def status_payload() -> dict:
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    print(f"Windows power throttling disabled for this process: {disable_power_throttling()}", flush=True)
     runner = ModelRunner()
     for name in VISION_MODELS + (AUDIO_MODELS if SETTINGS["audio"] else ()):
         st = runner.load(name)
@@ -87,7 +89,10 @@ def measurement_source():
 
 
 def print_report(report: dict) -> None:
-    print(f"\nSession: {report['duration_s']:.1f} s, frames received {report['frames_received']}, "
+    print(f"\nSession ({report['mode']}, face up to {report['face_max_fps']:g} fps, pose {report['pose_fps']:g} fps): "
+          f"{report['duration_s']:.1f} s, frames received {report['frames_received']}, "
+          f"rate limited {report['frames_rate_limited']}, pose runs {report['pose_runs']}, "
+          f"pose skipped for ASR {report['pose_skipped_for_asr']}, "
           f"processed {report['frames_processed']}, replaced in mailbox {report['frames_replaced_in_mailbox']}, "
           f"dropped in browser {report.get('browser', {}).get('dropped_busy', 'n/a')}, "
           f"face detector runs {report['face_detector_runs']}")
@@ -99,7 +104,7 @@ def print_report(report: dict) -> None:
 
 
 def save_report(report: dict, status: dict, stats_dir: Path, stamp: str) -> Path:
-    from benchmarks.schema import Measurement, save_json
+    from benchmarks.schema import Derived, Measurement, save_json
 
     src = measurement_source()
     stats_dir.mkdir(parents=True, exist_ok=True)
@@ -124,6 +129,15 @@ def save_report(report: dict, status: dict, stats_dir: Path, stamp: str) -> Path
                 precision=status[model]["precision"] if model else ("float32" if "warp" in stage else "unknown"),
                 ort_version=STATE["runner"].ort.__version__,
                 notes=f"{s['count']} samples, numpy.percentile linear. {session}"))
+    common = dict(source=src, runtime="onnxruntime and numpy", compute_unit="+".join(sorted(set(units.values()))),
+                  precision="float32", ort_version=STATE["runner"].ort.__version__, notes=session)
+    processed = Measurement(model="vision_pipeline", metric="frames_processed", value=report["frames_processed"],
+                            unit="frames", **common)
+    duration = Measurement(model="vision_pipeline", metric="session_duration", value=report["duration_s"], unit="s",
+                           **common)
+    records += [processed, duration, Derived(
+        name="vision_pipeline processed fps", value=report["frames_processed"] / report["duration_s"], unit="fps",
+        formula="frames_processed / session_duration", inputs=[processed, duration])]
     path = stats_dir / f"{stamp}_vision_session.json"
     save_json(records, path)
     (stats_dir / f"{stamp}_vision_session_report.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
@@ -264,14 +278,15 @@ async def session(ws: WebSocket) -> None:
         while True:
             await ws.send_json(await events.get())
 
-    vision = VisionPipeline(STATE["runner"], emit)
+    priority = AsrPriority()
+    vision = VisionPipeline(STATE["runner"], emit, priority=priority)
     await ws.send_json({"type": "status", **status_payload()})
     sender = asyncio.create_task(send_events())
     vision.start()
     audio = None
     if SETTINGS["audio"]:
         try:
-            audio = AudioPipeline(STATE["runner"], emit, source_factory=audio_source_factory())
+            audio = AudioPipeline(STATE["runner"], emit, source_factory=audio_source_factory(), priority=priority)
             audio.start()
             emit({"type": "audio", "state": "running", "source": audio.source.describe()})
         except Exception as e:  # noqa: BLE001  video keeps running without audio

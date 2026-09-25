@@ -1,0 +1,71 @@
+{
+  "duration_s": 86.23500000000058,
+  "frames_received": 1275,
+  "frames_processed": 1258,
+  "frames_replaced_in_mailbox": 0,
+  "bad_messages": 0,
+  "face_detector_runs": 1,
+  "mode": "cpu_fallback",
+  "face_max_fps": 15.0,
+  "pose_fps": 5.0,
+  "frames_rate_limited": 17,
+  "pose_runs": 401,
+  "pose_skipped_for_asr": 70,
+  "stages": {
+    "queue_wait": {
+      "count": 1258,
+      "p50_ms": 0.08919999527279288,
+      "p95_ms": 0.1639200090721714
+    },
+    "face_detector": {
+      "count": 1,
+      "p50_ms": 6.089800008339807,
+      "p95_ms": 6.089800008339807
+    },
+    "roi_warp": {
+      "count": 1258,
+      "p50_ms": 1.5875499957473949,
+      "p95_ms": 2.318490000470774
+    },
+    "face_landmark": {
+      "count": 1258,
+      "p50_ms": 2.006249997066334,
+      "p95_ms": 2.5810400060436223
+    },
+    "head_pose": {
+      "count": 1258,
+      "p50_ms": 0.2638500009197742,
+      "p95_ms": 0.41008500411407994
+    },
+    "pose_detector": {
+      "count": 401,
+      "p50_ms": 8.614100006525405,
+      "p95_ms": 10.798200004501268
+    },
+    "pose_warp": {
+      "count": 401,
+      "p50_ms": 2.5862000038614497,
+      "p95_ms": 3.337500005727634
+    },
+    "pose_landmark": {
+      "count": 401,
+      "p50_ms": 9.875900010229088,
+      "p95_ms": 12.040300003718585
+    },
+    "pose": {
+      "count": 401,
+      "p50_ms": 21.63269999437034,
+      "p95_ms": 25.332100005471148
+    },
+    "total": {
+      "count": 1258,
+      "p50_ms": 4.25954999809619,
+      "p95_ms": 27.835924996907124
+    }
+  },
+  "browser": {
+    "dropped_busy": 0,
+    "dropped_buffered": 0,
+    "frames_sent": 1275
+  }
+}

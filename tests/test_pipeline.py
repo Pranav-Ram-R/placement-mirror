@@ -42,12 +42,16 @@ class FakeRunner:
     SHAPES = {"face_detector": [1, 3, 256, 256], "face_landmark": [1, 3, 192, 192],
               "pose_detector": [1, 3, 128, 128], "pose_landmark": [1, 3, 256, 256]}
 
-    def __init__(self):
+    def __init__(self, unit="NPU"):
+        self.unit = unit
         self.yaw = 0.0
         self.pitch = 0.0
         self.face_score = 1.0
         self.nose_y = 0.30  # pose landmark nose y in the crop, normalized
         self.calls = []
+
+    def status(self):
+        return {name: {"compute_unit": self.unit} for name in self.SHAPES}
 
     def input_specs(self, name):
         return [("image", self.SHAPES[name], "tensor(float)")]
@@ -92,7 +96,7 @@ POSE_IN = np.zeros((128, 128, 3), np.uint8)
 
 
 def frame(i, t, face=True, pose=True):
-    return parse_frame(encode_frame(i, RGB, FACE_IN if face else None, POSE_IN if pose else None), t)
+    return parse_frame(encode_frame(i, RGB, FACE_IN if face else None, POSE_IN if pose else None), t, t)
 
 
 def test_parse_frame_roundtrip_and_errors():
@@ -139,12 +143,40 @@ def test_face_detector_runs_only_without_a_track_and_is_requested_again_after_lo
     assert ev["face"]["state"] == "detected" and runner.calls.count("face_detector") == 2
 
 
-def test_pose_runs_every_other_frame():
-    runner = FakeRunner()
-    pipe, _ = make(runner)
-    flags = [pipe.process(frame(i, i * 0.033))["pose_updated"] for i in range(6)]
+def test_npu_mode_runs_pose_every_other_frame_at_30_fps():
+    runner = FakeRunner("NPU")
+    pipe, events = make(runner)
+    pipe.start()
+    pipe.stop()
+    assert events[0] == {"type": "mode", "mode": "npu", "label": "NPU mode", "face_max_fps": 30.0, "pose_fps": 15.0}
+    flags = [pipe.process(frame(i, i / 30))["pose_updated"] for i in range(6)]
     assert flags == [True, False, True, False, True, False]
     assert runner.calls.count("pose_landmark") == 3
+
+
+def test_cpu_fallback_mode_limits_face_to_15_and_pose_to_5_fps():
+    runner = FakeRunner("CPU")
+    pipe, events = make(runner)
+    assert pipe.mode_event() == {"type": "mode", "mode": "cpu_fallback", "label": "CPU fallback mode, reduced frame rate",
+                                 "face_max_fps": 15.0, "pose_fps": 5.0}
+    frames = [frame(i, i / 30) for i in range(60)]  # 2 s at 30 fps
+    accepted = [f for f in frames if pipe.accept(f)]
+    assert len(accepted) == 30 and pipe.counters.rate_limited == 30  # 15 fps
+    flags = [pipe.process(f)["pose_updated"] for f in accepted]
+    assert sum(flags) == 10  # 5 fps over 2 s
+
+
+def test_cpu_fallback_mode_skips_pose_while_asr_transcribes():
+    runner = FakeRunner("CPU")
+    pipe, _ = make(runner)
+    pipe.priority.busy.set()
+    flags = [pipe.process(frame(i, i * 0.25))["pose_updated"] for i in range(4)]
+    assert flags == [False] * 4 and pipe.counters.pose_skipped_for_asr == 4
+    pipe.priority.busy.clear()
+    assert pipe.process(frame(4, 1.0))["pose_updated"] is True
+    npu, _ = make(FakeRunner("NPU"))
+    npu.priority.busy.set()
+    assert npu.process(frame(0, 0.0))["pose_updated"] is True  # NPU mode runs at full rate
 
 
 def calibrate(pipe, runner):
@@ -211,13 +243,13 @@ def test_busy_is_signalled_when_a_frame_is_replaced_and_cleared_when_the_worker_
     pipe.process = slow_process
     pipe.start()
     data = encode_frame(0, RGB, FACE_IN, POSE_IN)
-    pipe.submit(data, 0.0)
+    pipe.submit(data, 0.0, 0.0)
     for _ in range(100):  # wait until the worker holds frame 0
         if pipe.mailbox.empty():
             break
         threading.Event().wait(0.01)
-    pipe.submit(data, 0.01)
-    pipe.submit(data, 0.02)  # replaces the unread frame
+    pipe.submit(data, 0.1, 0.1)
+    pipe.submit(data, 0.2, 0.2)  # replaces the unread frame
     assert {"type": "busy", "busy": True} in events
     gate.set()
     for _ in range(200):

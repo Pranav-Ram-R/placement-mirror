@@ -16,8 +16,13 @@ config.face_track_min_score ends the track. Head pose is Kabsch on 6 landmarks
 (app.vision.head_pose). Facing = |yaw| and |pitch| relative to calibration under the
 config limits (provisional until Task C results).
 
-Pose: on every other processed frame, pose detector on the browser's 128x128 letterbox,
-ROI crop, pose landmarks. Posture score from shoulder tilt plus head drop relative to
+Pose: at the mode's pose rate, pose detector on the browser's 128x128 letterbox, ROI
+crop, pose landmarks.
+
+Modes: NPU mode when every vision model runs on the NPU (face up to 30 fps, pose 15 fps).
+CPU fallback mode when any vision model runs on CPU: face up to 15 fps, pose 5 fps, pose
+frames skipped while the ASR worker transcribes, and the worker thread at below normal
+OS priority (app.runtime.priority). The browser is told the face rate. Posture score from shoulder tilt plus head drop relative to
 calibration (config, provisional).
 
 Calibration: the first config.calibration_s seconds after the user presses Calibrate.
@@ -34,6 +39,7 @@ from typing import Any, Callable
 import numpy as np
 
 from app.config import VISION, VisionConfig
+from app.runtime.priority import AsrPriority, set_current_thread_priority
 from app.vision.detection import FACE_ANCHORS, POSE_ANCHORS, best_detection
 from app.vision.head_pose import MESH_IDS, head_pose
 from app.vision.preprocess import image_tensor, input_layout
@@ -238,14 +244,26 @@ class SessionCounters:
     processed: int = 0
     bad_messages: int = 0
     face_detector_runs: int = 0
+    rate_limited: int = 0
+    pose_runs: int = 0
+    pose_skipped_for_asr: int = 0
     started: float = field(default_factory=time.monotonic)
 
 
 class VisionPipeline:
-    def __init__(self, runner, emit: Callable[[dict], None], cfg: VisionConfig = VISION):
+    def __init__(self, runner, emit: Callable[[dict], None], cfg: VisionConfig = VISION,
+                 priority: AsrPriority | None = None):
         self.runner = runner
         self.emit = emit
         self.cfg = cfg
+        self.priority = priority or AsrPriority()
+        status = runner.status()
+        on_npu = all(status.get(n, {}).get("compute_unit") == "NPU" for n in VISION_MODELS)
+        self.mode = "npu" if on_npu else "cpu_fallback"
+        self.face_max_fps = cfg.npu_face_max_fps if on_npu else cfg.cpu_face_max_fps
+        self.pose_fps = cfg.npu_pose_fps if on_npu else cfg.cpu_pose_fps
+        self._last_accepted = float("-inf")
+        self._last_pose = float("-inf")
         self.layouts = {}
         self.sizes = {}
         for name in VISION_MODELS:
@@ -269,10 +287,16 @@ class VisionPipeline:
 
     # ------------------------------------------------------------------ session control
 
+    def mode_event(self) -> dict:
+        label = "NPU mode" if self.mode == "npu" else "CPU fallback mode, reduced frame rate"
+        return {"type": "mode", "mode": self.mode, "label": label, "face_max_fps": self.face_max_fps,
+                "pose_fps": self.pose_fps}
+
     def start(self) -> None:
         self._running = True
         self._thread = threading.Thread(target=self._loop, name="vision-worker", daemon=True)
         self._thread.start()
+        self.emit(self.mode_event())
         self.emit({"type": "detector_inputs", **self.want})
 
     def stop(self) -> None:
@@ -303,10 +327,25 @@ class VisionPipeline:
             self._busy = busy
         self.emit({"type": "busy", "busy": busy})
 
+    def accept(self, frame: Frame) -> bool:
+        """Face rate limit: drop a frame that arrives sooner than the mode allows."""
+        # 0.8 of the interval leaves room for arrival jitter at the browser's capped rate.
+        if frame.arrival_perf - self._last_accepted < 0.8 / self.face_max_fps:
+            self.counters.rate_limited += 1
+            return False
+        self._last_accepted = frame.arrival_perf
+        return True
+
     def _loop(self) -> None:
+        if self.mode == "cpu_fallback":
+            set_current_thread_priority("below_normal")
         while self._running:
             frame = self.mailbox.get(timeout=0.5)
             if frame is None:
+                continue
+            if not self.accept(frame):
+                if self.mailbox.empty():
+                    self._set_busy(False)
                 continue
             try:
                 event = self.process(frame)
@@ -331,8 +370,14 @@ class VisionPipeline:
             return padded[0]
 
         face = self._face(frame, get_padded)
-        pose_frame = self.counters.processed % self.cfg.pose_every_n_frames == 0
+        # 0.9 of the interval leaves room for arrival jitter.
+        pose_frame = frame.arrival_perf - self._last_pose >= 0.9 / self.pose_fps
+        if pose_frame and self.mode == "cpu_fallback" and self.priority.busy.is_set():
+            self.counters.pose_skipped_for_asr += 1
+            pose_frame = False
         if pose_frame:
+            self._last_pose = frame.arrival_perf
+            self.counters.pose_runs += 1
             t0 = time.perf_counter()
             self.last_pose = self._pose(frame, get_padded)
             self.times.add("pose", time.perf_counter() - t0)
@@ -468,4 +513,7 @@ class VisionPipeline:
         return {"duration_s": time.monotonic() - c.started, "frames_received": c.received,
                 "frames_processed": c.processed, "frames_replaced_in_mailbox": self.mailbox.replaced,
                 "bad_messages": c.bad_messages, "face_detector_runs": c.face_detector_runs,
+                "mode": self.mode, "face_max_fps": self.face_max_fps, "pose_fps": self.pose_fps,
+                "frames_rate_limited": c.rate_limited, "pose_runs": c.pose_runs,
+                "pose_skipped_for_asr": c.pose_skipped_for_asr,
                 "stages": self.times.summary()}

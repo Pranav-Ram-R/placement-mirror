@@ -8,7 +8,7 @@ const WIDTH = 640;
 const HEIGHT = 480;
 const FACE_SIZE = 256;
 const POSE_SIZE = 128;
-const MAX_FPS = 30;
+let maxFps = 30; // set by the server's mode event
 const HEADER_BYTES = 24;
 
 const $ = (id) => document.getElementById(id);
@@ -110,13 +110,13 @@ function sendFrame(now) {
 }
 
 // Runs on every animation frame and sends only when the video has decoded a new frame,
-// at most MAX_FPS times a second. requestVideoFrameCallback is not used because headless
+// at most maxFps times a second. requestVideoFrameCallback is not used because headless
 // Edge fires it at about 13 per second while the camera delivers 30.
 function tick() {
   if (!state.running) return;
   const now = performance.now();
   const decoded = video.getVideoPlaybackQuality().totalVideoFrames;
-  if (decoded !== state.lastDecoded && now - state.lastSend >= 1000 / MAX_FPS - 2) {
+  if (decoded !== state.lastDecoded && now - state.lastSend >= 1000 / maxFps - 2) {
     state.lastDecoded = decoded;
     state.lastSend = now;
     sendFrame(now);
@@ -242,6 +242,11 @@ function onMessage(msg) {
     case "indicators": renderIndicators(ev); renderCalibration(ev.calibration); break;
     case "calibration": renderCalibration(ev); break;
     case "stats": renderStats(ev); break;
+    case "mode":
+      maxFps = ev.face_max_fps;
+      $("mode").textContent = ev.label;
+      $("mode").dataset.state = ev.mode === "npu" ? "good" : "bad";
+      break;
     case "speech": renderSpeech(ev); break;
     case "transcript": renderTranscript(ev); break;
     case "pause": renderPause(ev); break;
@@ -267,7 +272,7 @@ async function start() {
   $("start").disabled = true;
   try {
     state.stream = await navigator.mediaDevices.getUserMedia({
-      video: { width: { ideal: WIDTH }, height: { ideal: HEIGHT }, frameRate: { ideal: MAX_FPS, max: MAX_FPS } },
+      video: { width: { ideal: WIDTH }, height: { ideal: HEIGHT }, frameRate: { ideal: 30, max: 30 } },
       audio: false,
     });
     video.srcObject = state.stream;

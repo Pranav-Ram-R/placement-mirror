@@ -6,7 +6,7 @@ be replaced by the evaluation named next to them.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
@@ -43,12 +43,20 @@ class VisionConfig:
     # 640x480: 201.9 px / 156.4 px = 1.29 (tools/face_track_scale.py, 2026-09-25).
     face_track_roi_scale: float = 1.29
 
-    # Pose: every pose_every_n_frames processed frames (2 = 15 fps at 30 fps capture).
-    # The pose detector runs on every pose frame because the AI Hub pose landmark model
+    # Frame rates by mode. NPU mode: every vision model runs on the NPU, full rates.
+    # CPU fallback mode: at least one vision model runs on CPU, so face runs at up to
+    # cpu_face_max_fps and pose at cpu_pose_fps, pose frames are skipped while the ASR
+    # worker transcribes, and the vision worker thread runs below the ASR thread's
+    # priority. The browser is told the face rate and sends no faster.
+    npu_face_max_fps: float = 30.0
+    npu_pose_fps: float = 15.0
+    cpu_face_max_fps: float = 15.0
+    cpu_pose_fps: float = 5.0
+
+    # Pose. The pose detector runs on every pose frame because the AI Hub pose landmark model
     # outputs only the 25 body landmarks, not the auxiliary keypoints MediaPipe uses to
     # track the next ROI. Detector and ROI values are the qai_hub_models mediapipe_pose
     # app defaults.
-    pose_every_n_frames: int = 2
     pose_detector_min_score: float = 0.75
     pose_nms_iou: float = 0.3
     pose_roi_scale: float = 1.5
@@ -97,3 +105,21 @@ class AudioConfig:
 
 
 AUDIO = AudioConfig()
+
+
+@dataclass(frozen=True)
+class RuntimeConfig:
+    # ONNX Runtime threads per session. Option names from the ORT docs "Thread management":
+    # SessionOptions.intra_op_num_threads ("Controls the total number of INTRA threads to use
+    # to run the model", the calling thread included), SessionOptions.inter_op_num_threads,
+    # and the session config entry "session.intra_op.allow_spinning" = "0" so idle pool
+    # threads sleep instead of spinning.
+    intra_op_threads: dict = field(default_factory=lambda: {
+        "face_detector": 2, "face_landmark": 2, "pose_detector": 2, "pose_landmark": 2,
+        "whisper_tiny_encoder": 4, "whisper_tiny_decoder": 4, "silero_vad": 1,
+    })
+    inter_op_threads: int = 1
+    intra_op_allow_spinning: str = "0"
+
+
+RUNTIME = RuntimeConfig()

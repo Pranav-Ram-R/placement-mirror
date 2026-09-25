@@ -9,6 +9,9 @@ Load order per model (models/manifest.json lists the files):
    "QNN context binary cache feature". A cached context model is loaded when present.
 3. onnx on CPUExecutionProvider
 
+Every session gets the thread settings in app.config.RUNTIME: intra_op_num_threads per
+model, inter_op_num_threads and session.intra_op.allow_spinning.
+
 Both QNN attempts set session.disable_cpu_ep_fallback=1, so a partial CPU fallback fails
 the attempt instead of passing silently. If no QNN NPU device is listed, both QNN attempts
 are skipped with that reason. After every session is created, the providers it reports
@@ -33,6 +36,8 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+
+from app.config import RUNTIME, RuntimeConfig
 
 REPO = Path(__file__).resolve().parents[2]
 MANIFEST = REPO / "models" / "manifest.json"
@@ -89,8 +94,8 @@ class QnnBackend:
     def available(self) -> bool:
         return bool(self.devices)
 
-    def session(self, path: Path, config: dict[str, str]):
-        so = self.ort.SessionOptions()
+    def session(self, path: Path, config: dict[str, str], so=None):
+        so = so if so is not None else self.ort.SessionOptions()
         for key, value in {**STRICT, **config}.items():
             so.add_session_config_entry(key, value)
         so.add_provider_for_devices(self.devices, {"backend_path": self.htp_path})
@@ -115,6 +120,7 @@ class ModelStatus:
     precision: str | None = None
     model_file: str | None = None
     ep_context_cache: str | None = None
+    threads: dict = field(default_factory=dict)
     load_s: float | None = None
     total_load_s: float | None = None
     attempts: list[Attempt] = field(default_factory=list)
@@ -131,7 +137,8 @@ class ModelStatus:
 
 
 class ModelRunner:
-    def __init__(self, manifest: Path = MANIFEST, qnn: QnnBackend | None = None, cache_dir: Path = CACHE_DIR):
+    def __init__(self, manifest: Path = MANIFEST, qnn: QnnBackend | None = None, cache_dir: Path = CACHE_DIR,
+                 runtime: RuntimeConfig = RUNTIME):
         import onnxruntime
 
         self.ort = onnxruntime
@@ -142,6 +149,7 @@ class ModelRunner:
             self.variants.setdefault(e["name"], {})[e["runtime"]] = e
         self.qnn = qnn if qnn is not None else QnnBackend(onnxruntime)
         self.cache_dir = Path(cache_dir)
+        self.runtime = runtime
         self.sessions: dict[str, Any] = {}
         self.statuses: dict[str, ModelStatus] = {}
 
@@ -157,10 +165,23 @@ class ModelRunner:
             raise FileNotFoundError(f"{path} missing, run python -m aihub.fetch_models")
         return path
 
+    def options(self, name: str):
+        """SessionOptions with the thread settings for this model (app.config.RUNTIME)."""
+        so = self.ort.SessionOptions()
+        so.intra_op_num_threads = self.runtime.intra_op_threads.get(name, 0)
+        so.inter_op_num_threads = self.runtime.inter_op_threads
+        so.add_session_config_entry("session.intra_op.allow_spinning", self.runtime.intra_op_allow_spinning)
+        return so
+
+    def _threads(self, name: str) -> dict:
+        return {"intra_op_num_threads": self.runtime.intra_op_threads.get(name, 0),
+                "inter_op_num_threads": self.runtime.inter_op_threads,
+                "session.intra_op.allow_spinning": self.runtime.intra_op_allow_spinning}
+
     def _precompiled(self, name: str, st: ModelStatus):
         path = self._file(name, "precompiled_qnn_onnx")
         st.runtime, st.model_file = "precompiled_qnn_onnx", str(path)
-        return self.qnn.session(path, {})
+        return self.qnn.session(path, {}, self.options(name))
 
     def _onnx_qnn(self, name: str, st: ModelStatus):
         path = self._file(name, "onnx")
@@ -168,20 +189,21 @@ class ModelRunner:
         st.runtime, st.ep_context_cache = "onnx", str(cache)
         if cache.exists():
             st.model_file = str(cache)
-            return self.qnn.session(cache, {})
+            return self.qnn.session(cache, {}, self.options(name))
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         st.model_file = str(path)
-        return self.qnn.session(path, {"ep.context_enable": "1", "ep.context_file_path": str(cache)})
+        return self.qnn.session(path, {"ep.context_enable": "1", "ep.context_file_path": str(cache)},
+                                self.options(name))
 
     def _cpu(self, name: str, st: ModelStatus):
         path = self._file(name, "onnx")
         st.runtime, st.model_file = "onnx", str(path)
-        return self.ort.InferenceSession(str(path), providers=["CPUExecutionProvider"])
+        return self.ort.InferenceSession(str(path), sess_options=self.options(name), providers=["CPUExecutionProvider"])
 
     def load(self, name: str) -> ModelStatus:
         if name in self.statuses and name in self.sessions:
             return self.statuses[name]
-        st = ModelStatus(name=name)
+        st = ModelStatus(name=name, threads=self._threads(name))
         start = time.perf_counter()
         steps = [(STEP_PRECOMPILED, self._precompiled, QNN_EP), (STEP_ONNX_QNN, self._onnx_qnn, QNN_EP),
                  (STEP_CPU, self._cpu, "CPUExecutionProvider")]

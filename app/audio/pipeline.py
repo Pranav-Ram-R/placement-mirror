@@ -28,6 +28,7 @@ from app.audio.capture import MicCapture
 from app.audio.vad import Segment, Segmenter, SileroVad
 from app.audio.whisper import Whisper
 from app.config import AUDIO, AudioConfig
+from app.runtime.priority import AsrPriority, set_current_thread_priority
 
 AUDIO_MODELS = ("silero_vad", "whisper_tiny_encoder", "whisper_tiny_decoder")
 
@@ -40,8 +41,10 @@ def percentiles(values: list[float]) -> dict:
 
 
 class AudioPipeline:
-    def __init__(self, runner, emit: Callable[[dict], None], cfg: AudioConfig = AUDIO, source_factory=None):
+    def __init__(self, runner, emit: Callable[[dict], None], cfg: AudioConfig = AUDIO, source_factory=None,
+                 priority: AsrPriority | None = None):
         self.runner = runner
+        self.priority = priority or AsrPriority()
         self.emit = emit
         self.cfg = cfg
         self.blocks: queue.Queue = queue.Queue()
@@ -102,6 +105,8 @@ class AudioPipeline:
             self.segmenter.feed(block)
 
     def _asr_loop(self) -> None:
+        # The ASR worker gets priority over the vision worker (app.runtime.priority).
+        set_current_thread_priority("above_normal")
         last_indicators = 0.0
         while self._running or not self.segments.empty():
             try:
@@ -117,7 +122,11 @@ class AudioPipeline:
 
     def _transcribe(self, seg: Segment) -> None:
         t_start = time.perf_counter()
-        tr = self.whisper.transcribe(seg.audio)
+        self.priority.busy.set()
+        try:
+            tr = self.whisper.transcribe(seg.audio)
+        finally:
+            self.priority.busy.clear()
         t_done = time.perf_counter()
         self.live.add_segment(tr.text, seg.start_mono, seg.speech_end_mono)
         calls = len(tr.decoder_call_s)
