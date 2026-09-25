@@ -1,0 +1,352 @@
+{
+  "written": "2026-09-25T06:08:58+00:00",
+  "models": [
+    {
+      "name": "face_detector",
+      "runtime": "onnx",
+      "precision": "float32",
+      "precision_evidence": "compile job jgnzz7nrg has no quantize option and target model float I/O is float32",
+      "job_id": "jgnzz7nrg",
+      "source": "AI Hub compile job",
+      "aihub_model": "mediapipe_face_float_face_detector",
+      "compile_options": "--target_runtime onnx --output_names box_coords_1,box_coords_2,box_scores_1,box_scores_2",
+      "target_model_id": "mmd01gk3n",
+      "qairt_sdk_version": null,
+      "onnx": "models/face_detector/onnx/model.onnx",
+      "sha256": "0867a0f060d28dd540872a955e8d31d79b3b7532edf8f1fb2e540e9fba95c85f",
+      "files": [
+        {
+          "path": "models/face_detector/onnx/model.data",
+          "bytes": 517152,
+          "sha256": "b3be3dc416cc2935ecb89564601bdb47903bdc88b67ed2b1652ac606956442e3"
+        },
+        {
+          "path": "models/face_detector/onnx/model.onnx",
+          "bytes": 401182,
+          "sha256": "0867a0f060d28dd540872a955e8d31d79b3b7532edf8f1fb2e540e9fba95c85f"
+        }
+      ],
+      "other_candidates": []
+    },
+    {
+      "name": "face_detector",
+      "runtime": "precompiled_qnn_onnx",
+      "precision": "float32",
+      "precision_evidence": "compile job jp8eej48p has no quantize option and target model float I/O is float32",
+      "job_id": "jp8eej48p",
+      "source": "AI Hub compile job",
+      "aihub_model": "mediapipe_face_float_face_detector",
+      "compile_options": "--target_runtime precompiled_qnn_onnx --qairt_version 2.50 --output_names box_coords_1,box_coords_2,box_scores_1,box_scores_2 --force_channel_last_input image --qnn_options context_enable_graphs=mediapipe_face_face_detector",
+      "target_model_id": "mnlz9ywkq",
+      "qairt_sdk_version": "2.50.0.260828221209",
+      "onnx": "models/face_detector/precompiled_qnn_onnx/model.onnx",
+      "sha256": "ee6e121c611613957a6c247b98344c4841019af1d2803be38b4beef4460358bf",
+      "files": [
+        {
+          "path": "models/face_detector/precompiled_qnn_onnx/model.bin",
+          "bytes": 841408,
+          "sha256": "44c8aba2a142b6447fe4123737b0f2bad0e360e25c7724ca4798d1c8584ab726"
+        },
+        {
+          "path": "models/face_detector/precompiled_qnn_onnx/model.onnx",
+          "bytes": 615,
+          "sha256": "ee6e121c611613957a6c247b98344c4841019af1d2803be38b4beef4460358bf"
+        }
+      ],
+      "other_candidates": []
+    },
+    {
+      "name": "face_landmark",
+      "runtime": "onnx",
+      "precision": "float32",
+      "precision_evidence": "compile job jprlln09p has no quantize option and target model float I/O is float32",
+      "job_id": "jprlln09p",
+      "source": "AI Hub compile job",
+      "aihub_model": "mediapipe_face_float_face_landmark_detector",
+      "compile_options": "--target_runtime onnx --output_names scores,landmarks",
+      "target_model_id": "mn4o3v8vq",
+      "qairt_sdk_version": null,
+      "onnx": "models/face_landmark/onnx/model.onnx",
+      "sha256": "57245bfe7ade0874fc6c7ae005ec7d7fdd3d6a0f90ada8b4617a8c4dcf90774b",
+      "files": [
+        {
+          "path": "models/face_landmark/onnx/model.data",
+          "bytes": 2396848,
+          "sha256": "7b4be428f66b16768aecb31954848ec9512eb444f13eaf6fc4690acc981d9732"
+        },
+        {
+          "path": "models/face_landmark/onnx/model.onnx",
+          "bytes": 281570,
+          "sha256": "57245bfe7ade0874fc6c7ae005ec7d7fdd3d6a0f90ada8b4617a8c4dcf90774b"
+        }
+      ],
+      "other_candidates": []
+    },
+    {
+      "name": "face_landmark",
+      "runtime": "precompiled_qnn_onnx",
+      "precision": "float32",
+      "precision_evidence": "compile job jgk2269og has no quantize option and target model float I/O is float32",
+      "job_id": "jgk2269og",
+      "source": "AI Hub compile job",
+      "aihub_model": "mediapipe_face_float_face_landmark_detector",
+      "compile_options": "--target_runtime precompiled_qnn_onnx --qairt_version 2.50 --output_names scores,landmarks --force_channel_last_input image --qnn_options context_enable_graphs=mediapipe_face_face_landmark_detector",
+      "target_model_id": "mm6j3pz4q",
+      "qairt_sdk_version": "2.50.0.260828221209",
+      "onnx": "models/face_landmark/precompiled_qnn_onnx/model.onnx",
+      "sha256": "88a784bdb8be5e989d97f3a2b2b25f64711543b8d6447e21c343db5ed8c9b400",
+      "files": [
+        {
+          "path": "models/face_landmark/precompiled_qnn_onnx/model.bin",
+          "bytes": 1749144,
+          "sha256": "bb81c410560977406d505b8bb154296a65c870477b261a5d05796bb140600720"
+        },
+        {
+          "path": "models/face_landmark/precompiled_qnn_onnx/model.onnx",
+          "bytes": 394,
+          "sha256": "88a784bdb8be5e989d97f3a2b2b25f64711543b8d6447e21c343db5ed8c9b400"
+        }
+      ],
+      "other_candidates": []
+    },
+    {
+      "name": "pose_detector",
+      "runtime": "onnx",
+      "precision": "float32",
+      "precision_evidence": "compile job j5qll4mmp has no quantize option and target model float I/O is float32",
+      "job_id": "j5qll4mmp",
+      "source": "AI Hub compile job",
+      "aihub_model": "mediapipe_pose_float_pose_detector",
+      "compile_options": "--target_runtime onnx --output_names box_coords_1,box_coords_2,box_scores_1,box_scores_2",
+      "target_model_id": "mq33zrvlq",
+      "qairt_sdk_version": null,
+      "onnx": "models/pose_detector/onnx/model.onnx",
+      "sha256": "6ea74ca5d4711698a3c717134554e1b3b4a4dea8c9728588b4c3785543eb9d4c",
+      "files": [
+        {
+          "path": "models/pose_detector/onnx/model.data",
+          "bytes": 3247552,
+          "sha256": "432a7a28a0d890c21a792a7930fb675457b191b0093ef66d53f2bfe16c8b936a"
+        },
+        {
+          "path": "models/pose_detector/onnx/model.onnx",
+          "bytes": 370658,
+          "sha256": "6ea74ca5d4711698a3c717134554e1b3b4a4dea8c9728588b4c3785543eb9d4c"
+        }
+      ],
+      "other_candidates": []
+    },
+    {
+      "name": "pose_detector",
+      "runtime": "precompiled_qnn_onnx",
+      "precision": "float32",
+      "precision_evidence": "compile job jgnzz71kg has no quantize option and target model float I/O is float32",
+      "job_id": "jgnzz71kg",
+      "source": "AI Hub compile job",
+      "aihub_model": "mediapipe_pose_float_pose_detector",
+      "compile_options": "--target_runtime precompiled_qnn_onnx --qairt_version latest --output_names box_coords_1,box_coords_2,box_scores_1,box_scores_2 --force_channel_last_input image --qnn_options context_enable_graphs=mediapipe_pose_pose_detector",
+      "target_model_id": "mng20wp5m",
+      "qairt_sdk_version": "2.50.0.260828221209",
+      "onnx": "models/pose_detector/precompiled_qnn_onnx/model.onnx",
+      "sha256": "9cc6e1fb4fd62eeab0fcb8111ac2d14e4fe6d50302a97509cb8bf7d1ef01c7ad",
+      "files": [
+        {
+          "path": "models/pose_detector/precompiled_qnn_onnx/model.bin",
+          "bytes": 2631096,
+          "sha256": "8506c39c7da38ab74200241683406810a35a316ad162c7faf96296f9d1be2e96"
+        },
+        {
+          "path": "models/pose_detector/precompiled_qnn_onnx/model.onnx",
+          "bytes": 615,
+          "sha256": "9cc6e1fb4fd62eeab0fcb8111ac2d14e4fe6d50302a97509cb8bf7d1ef01c7ad"
+        }
+      ],
+      "other_candidates": []
+    },
+    {
+      "name": "pose_landmark",
+      "runtime": "onnx",
+      "precision": "float32",
+      "precision_evidence": "compile job jglyyw1l5 has no quantize option and target model float I/O is float32",
+      "job_id": "jglyyw1l5",
+      "source": "AI Hub compile job",
+      "aihub_model": "mediapipe_pose_float_pose_landmark_detector",
+      "compile_options": "--target_runtime onnx --output_names scores,landmarks",
+      "target_model_id": "mno4krz9m",
+      "qairt_sdk_version": null,
+      "onnx": "models/pose_landmark/onnx/model.onnx",
+      "sha256": "a2c266f1bfa52a2c25bc4bb6012ba8913c48315c36abd04ee0813093421cbbe7",
+      "files": [
+        {
+          "path": "models/pose_landmark/onnx/model.data",
+          "bytes": 13432608,
+          "sha256": "6035f5ec9d5575e029102fe2c2c31ade25d3dc2a7e20e2a079393c2161772ef5"
+        },
+        {
+          "path": "models/pose_landmark/onnx/model.onnx",
+          "bytes": 755333,
+          "sha256": "a2c266f1bfa52a2c25bc4bb6012ba8913c48315c36abd04ee0813093421cbbe7"
+        }
+      ],
+      "other_candidates": []
+    },
+    {
+      "name": "pose_landmark",
+      "runtime": "precompiled_qnn_onnx",
+      "precision": "float32",
+      "precision_evidence": "compile job jprllnx0p has no quantize option and target model float I/O is float32",
+      "job_id": "jprllnx0p",
+      "source": "AI Hub compile job",
+      "aihub_model": "mediapipe_pose_float_pose_landmark_detector",
+      "compile_options": "--target_runtime precompiled_qnn_onnx --qairt_version latest --output_names scores,landmarks --force_channel_last_input image --qnn_options context_enable_graphs=mediapipe_pose_pose_landmark_detector",
+      "target_model_id": "mnlz93keq",
+      "qairt_sdk_version": "2.50.0.260828221209",
+      "onnx": "models/pose_landmark/precompiled_qnn_onnx/model.onnx",
+      "sha256": "03f2ad0b4e5c97b14c6fd549c4dd64fe980b4483f4bef26557edcf069b250279",
+      "files": [
+        {
+          "path": "models/pose_landmark/precompiled_qnn_onnx/model.bin",
+          "bytes": 8223296,
+          "sha256": "bc06452dabdb2eb11a8e1a56e833ee500bf832ef845a9114c23ecc4737c10e5f"
+        },
+        {
+          "path": "models/pose_landmark/precompiled_qnn_onnx/model.onnx",
+          "bytes": 392,
+          "sha256": "03f2ad0b4e5c97b14c6fd549c4dd64fe980b4483f4bef26557edcf069b250279"
+        }
+      ],
+      "other_candidates": []
+    },
+    {
+      "name": "whisper_tiny_encoder",
+      "runtime": "onnx",
+      "precision": "float32",
+      "precision_evidence": "compile job j5688od7g has no quantize option and target model float I/O is float32",
+      "job_id": "j5688od7g",
+      "source": "AI Hub compile job",
+      "aihub_model": "whisper_tiny_float_encoder",
+      "compile_options": "--target_runtime onnx --output_names k_cache_cross_0,v_cache_cross_0,k_cache_cross_1,v_cache_cross_1,k_cache_cross_2,v_cache_cross_2,k_cache_cross_3,v_cache_cross_3",
+      "target_model_id": "mqvogy0jm",
+      "qairt_sdk_version": null,
+      "onnx": "models/whisper_tiny_encoder/onnx/model.onnx",
+      "sha256": "d98657cc54e8e491e9640d6bacf81db6e5d83f5f940a1cc55ed30888920d7b05",
+      "files": [
+        {
+          "path": "models/whisper_tiny_encoder/onnx/model.data",
+          "bytes": 37539840,
+          "sha256": "951cbc157ac225d00a7450a7a632b9dd909bd9bcf26564bc898471da26f9510c"
+        },
+        {
+          "path": "models/whisper_tiny_encoder/onnx/model.onnx",
+          "bytes": 892540,
+          "sha256": "d98657cc54e8e491e9640d6bacf81db6e5d83f5f940a1cc55ed30888920d7b05"
+        }
+      ],
+      "other_candidates": []
+    },
+    {
+      "name": "whisper_tiny_encoder",
+      "runtime": "precompiled_qnn_onnx",
+      "precision": "float16",
+      "precision_evidence": "compile job jp1nnvn2g has --quantize_full_type float16 and target model float I/O is float16",
+      "job_id": "jp1nnvn2g",
+      "source": "AI Hub compile job",
+      "aihub_model": "whisper_tiny_float_encoder",
+      "compile_options": "--target_runtime precompiled_qnn_onnx --qairt_version latest --output_names k_cache_cross_0,v_cache_cross_0,k_cache_cross_1,v_cache_cross_1,k_cache_cross_2,v_cache_cross_2,k_cache_cross_3,v_cache_cross_3 --qnn_options context_enable_graphs=hf_whisper_encoder --quantize_full_type float16 --quantize_io",
+      "target_model_id": "mmrgv496q",
+      "qairt_sdk_version": "2.50.0.260828221209",
+      "onnx": "models/whisper_tiny_encoder/precompiled_qnn_onnx/model.onnx",
+      "sha256": "3671c54d0b63c50b6501782f8422a9626d010922810fc21a43aa822024b86058",
+      "files": [
+        {
+          "path": "models/whisper_tiny_encoder/precompiled_qnn_onnx/model.bin",
+          "bytes": 19762832,
+          "sha256": "35f13bdcbbfd019bf622327ba40a5538a280fc7a1fc464dcd78ffe26e640d5f3"
+        },
+        {
+          "path": "models/whisper_tiny_encoder/precompiled_qnn_onnx/model.onnx",
+          "bytes": 1120,
+          "sha256": "3671c54d0b63c50b6501782f8422a9626d010922810fc21a43aa822024b86058"
+        }
+      ],
+      "other_candidates": []
+    },
+    {
+      "name": "whisper_tiny_decoder",
+      "runtime": "onnx",
+      "precision": "float32",
+      "precision_evidence": "compile job jp3zzowz5 has no quantize option and target model float I/O is float32",
+      "job_id": "jp3zzowz5",
+      "source": "AI Hub compile job",
+      "aihub_model": "whisper_tiny_float_decoder",
+      "compile_options": "--target_runtime onnx --output_names logits,k_cache_self_0_out,v_cache_self_0_out,k_cache_self_1_out,v_cache_self_1_out,k_cache_self_2_out,v_cache_self_2_out,k_cache_self_3_out,v_cache_self_3_out",
+      "target_model_id": "mnj825p9m",
+      "qairt_sdk_version": null,
+      "onnx": "models/whisper_tiny_decoder/onnx/model.onnx",
+      "sha256": "7ba5c28e3c5c70de51a6d4c685a316a1937fb92ad9a4aff00e75ef1de6359a67",
+      "files": [
+        {
+          "path": "models/whisper_tiny_decoder/onnx/model.data",
+          "bytes": 193130496,
+          "sha256": "1a8ca9c746072e3150840b98a952b894299bf97267ee3b8d52950d8494863f7c"
+        },
+        {
+          "path": "models/whisper_tiny_decoder/onnx/model.onnx",
+          "bytes": 1258046,
+          "sha256": "7ba5c28e3c5c70de51a6d4c685a316a1937fb92ad9a4aff00e75ef1de6359a67"
+        }
+      ],
+      "other_candidates": []
+    },
+    {
+      "name": "whisper_tiny_decoder",
+      "runtime": "precompiled_qnn_onnx",
+      "precision": "float16",
+      "precision_evidence": "compile job jp4yy9yvp has --quantize_full_type float16 and target model float I/O is float16",
+      "job_id": "jp4yy9yvp",
+      "source": "AI Hub compile job",
+      "aihub_model": "whisper_tiny_float_decoder",
+      "compile_options": "--target_runtime precompiled_qnn_onnx --qairt_version latest --output_names logits,k_cache_self_0_out,v_cache_self_0_out,k_cache_self_1_out,v_cache_self_1_out,k_cache_self_2_out,v_cache_self_2_out,k_cache_self_3_out,v_cache_self_3_out --qnn_options context_enable_graphs=hf_whisper_decoder --quantize_full_type float16 --quantize_io",
+      "target_model_id": "mqpkev2vn",
+      "qairt_sdk_version": "2.50.0.260828221209",
+      "onnx": "models/whisper_tiny_decoder/precompiled_qnn_onnx/model.onnx",
+      "sha256": "3cf50d305f14fc5ca59c11e02a1fa3ab2d6d791e72c612f8395dffc352e1d924",
+      "files": [
+        {
+          "path": "models/whisper_tiny_decoder/precompiled_qnn_onnx/model.bin",
+          "bytes": 97457952,
+          "sha256": "7eb93b2f4ba96d4077ca74c306baa1ee8e9a2a564d1a0ef0ff42ed70b4396176"
+        },
+        {
+          "path": "models/whisper_tiny_decoder/precompiled_qnn_onnx/model.onnx",
+          "bytes": 3147,
+          "sha256": "3cf50d305f14fc5ca59c11e02a1fa3ab2d6d791e72c612f8395dffc352e1d924"
+        }
+      ],
+      "other_candidates": []
+    },
+    {
+      "name": "silero_vad",
+      "runtime": "onnx",
+      "precision": "float32",
+      "precision_evidence": "graph input and output types ['float', 'int64']",
+      "job_id": null,
+      "source": "snakers4/silero-vad GitHub release",
+      "version": "v6.2.3",
+      "license": "MIT (https://github.com/snakers4/silero-vad/blob/master/LICENSE)",
+      "url": "https://raw.githubusercontent.com/snakers4/silero-vad/v6.2.3/src/silero_vad/data/silero_vad.onnx",
+      "opset": [
+        16
+      ],
+      "onnx": "models/silero_vad/onnx/silero_vad.onnx",
+      "sha256": "1a153a22f4509e292a94e67d6f9b85e8deb25b4988682b7e174c65279d8788e3",
+      "files": [
+        {
+          "path": "models/silero_vad/onnx/silero_vad.onnx",
+          "bytes": 2327524,
+          "sha256": "1a153a22f4509e292a94e67d6f9b85e8deb25b4988682b7e174c65279d8788e3"
+        }
+      ]
+    }
+  ]
+}

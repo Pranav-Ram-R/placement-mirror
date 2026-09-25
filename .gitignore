@@ -70,7 +70,8 @@ Thumbs.db
 .DS_Store
 
 # Project: never commit models, recordings or session data
-models/
+models/*
+!models/manifest.json
 *.onnx
 *.bin
 *.dlc
