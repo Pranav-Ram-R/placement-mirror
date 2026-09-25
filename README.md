@@ -37,7 +37,14 @@ To run the app, start the server and open http://127.0.0.1:8000 in Edge:
 ```
 
 Press Start camera, then Calibrate while sitting as in an interview and looking at the
-camera. With `--stats-dir <dir>` each session's per stage p50 and p95 are saved there.
+camera. Audio comes from the default microphone. With `--stats-dir <dir>` each session's
+video stage p50 and p95 and per segment audio timings are saved there (never the
+transcript). `--audio-file clip.wav` plays a 16 kHz mono recording instead of the
+microphone and `--no-audio` runs video only.
+
+The Whisper parity tests (`tests/test_mel_parity.py`, `tests/test_decode_parity.py`) need
+transformers and torch, so they skip in `.venv-app`. Run them where the eval requirements
+and pytest are installed.
 
 ### AI Hub tools
 

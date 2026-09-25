@@ -66,3 +66,34 @@ class VisionConfig:
 
 
 VISION = VisionConfig()
+
+
+@dataclass(frozen=True)
+class AudioConfig:
+    # Capture: sounddevice, 16 kHz mono, 512 sample (32 ms) blocks, the block size Silero
+    # VAD takes at 16 kHz.
+    sample_rate: int = 16000
+    block_samples: int = 512
+
+    # Silero VAD. threshold and neg_threshold (threshold - 0.15) are the silero-vad
+    # VADIterator defaults: speech starts at a probability >= threshold and continues while
+    # it stays >= neg_threshold. speech_pad_ms is the silero-vad default padding kept
+    # before and after speech.
+    vad_threshold: float = 0.5
+    vad_neg_threshold: float = 0.35
+    speech_pad_ms: int = 30
+    # A segment ends after this much silence, or at segment_max_s.
+    segment_end_silence_ms: int = 700
+    segment_max_s: float = 25.0
+    # A pause event is sent for a silence longer than this, after speech has started.
+    pause_min_s: float = 2.0
+
+    # Whisper. use_prompt feeds the Task B filler prompt before the decoder prefix.
+    use_prompt: bool = False
+
+    # Live indicators: WPM = words in the last wpm_window_s seconds / wpm_window_s * 60.
+    wpm_window_s: float = 30.0
+    indicator_interval_s: float = 1.0
+
+
+AUDIO = AudioConfig()

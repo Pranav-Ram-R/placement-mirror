@@ -30,7 +30,7 @@ main {
   gap: 1.5rem;
 }
 
-main > section:nth-child(n + 3) { grid-column: 1 / -1; }
+main > section:nth-child(n + 5) { grid-column: 1 / -1; }
 
 @media (max-width: 900px) {
   main { grid-template-columns: minmax(0, 1fr); }
@@ -58,3 +58,6 @@ dd[data-state="bad"] { color: var(--bad); }
 
 table { border-collapse: collapse; width: 100%; }
 th, td { text-align: left; border-bottom: 1px solid var(--line); padding: 0.3rem 0.5rem; vertical-align: top; }
+
+.transcript { max-height: 16rem; overflow-y: auto; margin: 0; padding-left: 1.5rem; }
+.transcript li { margin-bottom: 0.3rem; }

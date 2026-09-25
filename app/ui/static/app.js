@@ -197,7 +197,40 @@ function renderStats(ev) {
     }
     body.appendChild(tr);
   }
+  const a = ev.audio;
+  if (a && a.summary) {
+    const s = a.summary;
+    const p = (m) => (m && m.count ? `p50 ${fmt(m.p50, 0)} ms, p95 ${fmt(m.p95, 0)} ms` : "none");
+    $("stats-summary").textContent += ` Audio: ${a.segments.length} segments, VAD latency ${p(s.vad_latency_ms)}, ` +
+      `encoder ${p(s.encoder_ms)}, end to end ${p(s.end_to_end_delay_ms)}.`;
+  }
   $("stats-section").hidden = false;
+}
+
+function renderSpeech(ev) {
+  $("wpm").textContent = fmt(ev.wpm, 0);
+  const parts = Object.entries(ev.fillers_by_word || {}).map(([w, n]) => `${w} ${n}`);
+  $("fillers").textContent = parts.length ? `${ev.filler_count} (${parts.join(", ")})` : String(ev.filler_count);
+  $("words").textContent = String(ev.words_total);
+}
+
+function renderTranscript(ev) {
+  const li = document.createElement("li");
+  li.textContent = ev.text.trim() || "(no words)";
+  li.title = `${fmt(ev.audio_s)} s of audio, transcript ${fmt(ev.end_to_end_delay_ms, 0)} ms after speech ended`;
+  $("transcript").appendChild(li);
+  li.scrollIntoView({ block: "nearest" });
+}
+
+function renderPause(ev) {
+  const pause = $("pause");
+  if (ev.state === "started") {
+    pause.textContent = "Pausing";
+    pause.dataset.state = "bad";
+  } else {
+    pause.textContent = `Last pause ${fmt(ev.duration_s)} s`;
+    pause.dataset.state = "unknown";
+  }
 }
 
 function onMessage(msg) {
@@ -209,6 +242,10 @@ function onMessage(msg) {
     case "indicators": renderIndicators(ev); renderCalibration(ev.calibration); break;
     case "calibration": renderCalibration(ev); break;
     case "stats": renderStats(ev); break;
+    case "speech": renderSpeech(ev); break;
+    case "transcript": renderTranscript(ev); break;
+    case "pause": renderPause(ev); break;
+    case "audio": $("audio-source").textContent = `Listening: ${ev.source}`; break;
     case "error": show($("error"), ev.message); break;
     default: break;
   }

@@ -1,0 +1,40 @@
+{
+ "decoder_prefix": [
+  50258,
+  50259,
+  50359,
+  50363
+ ],
+ "decoder_prefix_tokens": [
+  "<|startoftranscript|>",
+  "<|en|>",
+  "<|transcribe|>",
+  "<|notimestamps|>"
+ ],
+ "filler_prompt": {
+  "text": "Umm, let me think, like, hmm. Okay, uh, here is what I think.",
+  "ids": [
+   50361,
+   18918,
+   11,
+   718,
+   385,
+   519,
+   11,
+   411,
+   11,
+   16478,
+   13,
+   1033,
+   11,
+   2232,
+   11,
+   510,
+   307,
+   437,
+   286,
+   519,
+   13
+  ]
+ }
+}
