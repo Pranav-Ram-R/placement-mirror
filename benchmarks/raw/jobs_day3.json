@@ -1,0 +1,240 @@
+[
+  {
+    "job_id": "jpe7n9y75",
+    "url": "https://workbench.aihub.qualcomm.com/jobs/jpe7n9y75/",
+    "job_type": "profile",
+    "model": "whisper_tiny_float_encoder",
+    "cell": "onnx_fp32",
+    "runtime": "onnx",
+    "compute_unit": "NPU",
+    "options": "--compute_unit npu --qairt_version 2.50 --max_profiler_iterations 100",
+    "flags_checked": {
+      "--compute_unit": "Specifies the target compute unit(s). [...] When used in a profile or inference job, this targets the specified compute unit(s). Implicit fall back to CPU will be determined by the target_runtime ; TfLite and ONNX Runtime always include CPU fallback. [...] npu Target NPU.",
+      "--qairt_version": "Specifies the version of Qualcomm AI Runtime to use in the job. This is applicable to: [...] Compile jobs targeting ONNX Runtime with an embedded Qualcomm AI Engine Direct context binary (i.e., precompiled_qnn_onnx ). All link, inference, and profile jobs. [...] Valid arguments are: major.minor version [...] latest , which will select the latest version.",
+      "--max_profiler_iterations": "Specifies the maximum number of profile iterations. Fewer iterations may be run if their cumulative runtime is predicted to exceed the execution timeout defined by --max_profiler_time . [...] Default: 100"
+    },
+    "docs": "https://app.aihub.qualcomm.com/docs/hub/api.html (fetched 2026-09-27)",
+    "compile_job_id": "j5688od7g",
+    "group": "Day 3 whisper_tiny runtime x precision on NPU",
+    "device": "Snapdragon X Elite CRD",
+    "submitted_at": "2026-09-27T11:45:41+00:00",
+    "status": "SUCCESS"
+  },
+  {
+    "job_id": "jgzl0enz5",
+    "url": "https://workbench.aihub.qualcomm.com/jobs/jgzl0enz5/",
+    "job_type": "profile",
+    "model": "whisper_tiny_float_decoder",
+    "cell": "onnx_fp32",
+    "runtime": "onnx",
+    "compute_unit": "NPU",
+    "options": "--compute_unit npu --qairt_version 2.50 --max_profiler_iterations 100",
+    "flags_checked": {
+      "--compute_unit": "Specifies the target compute unit(s). [...] When used in a profile or inference job, this targets the specified compute unit(s). Implicit fall back to CPU will be determined by the target_runtime ; TfLite and ONNX Runtime always include CPU fallback. [...] npu Target NPU.",
+      "--qairt_version": "Specifies the version of Qualcomm AI Runtime to use in the job. This is applicable to: [...] Compile jobs targeting ONNX Runtime with an embedded Qualcomm AI Engine Direct context binary (i.e., precompiled_qnn_onnx ). All link, inference, and profile jobs. [...] Valid arguments are: major.minor version [...] latest , which will select the latest version.",
+      "--max_profiler_iterations": "Specifies the maximum number of profile iterations. Fewer iterations may be run if their cumulative runtime is predicted to exceed the execution timeout defined by --max_profiler_time . [...] Default: 100"
+    },
+    "docs": "https://app.aihub.qualcomm.com/docs/hub/api.html (fetched 2026-09-27)",
+    "compile_job_id": "jp3zzowz5",
+    "group": "Day 3 whisper_tiny runtime x precision on NPU",
+    "device": "Snapdragon X Elite CRD",
+    "submitted_at": "2026-09-27T11:45:46+00:00",
+    "status": "SUCCESS"
+  },
+  {
+    "job_id": "jp1nm06kg",
+    "url": "https://workbench.aihub.qualcomm.com/jobs/jp1nm06kg/",
+    "job_type": "profile",
+    "model": "whisper_tiny_float_encoder",
+    "cell": "precompiled_fp16",
+    "runtime": "precompiled_qnn_onnx",
+    "compute_unit": "NPU",
+    "options": "--compute_unit npu --qairt_version 2.50 --max_profiler_iterations 100",
+    "flags_checked": {
+      "--compute_unit": "Specifies the target compute unit(s). [...] When used in a profile or inference job, this targets the specified compute unit(s). Implicit fall back to CPU will be determined by the target_runtime ; TfLite and ONNX Runtime always include CPU fallback. [...] npu Target NPU.",
+      "--qairt_version": "Specifies the version of Qualcomm AI Runtime to use in the job. This is applicable to: [...] Compile jobs targeting ONNX Runtime with an embedded Qualcomm AI Engine Direct context binary (i.e., precompiled_qnn_onnx ). All link, inference, and profile jobs. [...] Valid arguments are: major.minor version [...] latest , which will select the latest version.",
+      "--max_profiler_iterations": "Specifies the maximum number of profile iterations. Fewer iterations may be run if their cumulative runtime is predicted to exceed the execution timeout defined by --max_profiler_time . [...] Default: 100"
+    },
+    "docs": "https://app.aihub.qualcomm.com/docs/hub/api.html (fetched 2026-09-27)",
+    "compile_job_id": "jp1nnvn2g",
+    "group": "Day 3 whisper_tiny runtime x precision on NPU",
+    "device": "Snapdragon X Elite CRD",
+    "submitted_at": "2026-09-27T11:45:51+00:00",
+    "status": "SUCCESS"
+  },
+  {
+    "job_id": "j57e8z9qp",
+    "url": "https://workbench.aihub.qualcomm.com/jobs/j57e8z9qp/",
+    "job_type": "profile",
+    "model": "whisper_tiny_float_decoder",
+    "cell": "precompiled_fp16",
+    "runtime": "precompiled_qnn_onnx",
+    "compute_unit": "NPU",
+    "options": "--compute_unit npu --qairt_version 2.50 --max_profiler_iterations 100",
+    "flags_checked": {
+      "--compute_unit": "Specifies the target compute unit(s). [...] When used in a profile or inference job, this targets the specified compute unit(s). Implicit fall back to CPU will be determined by the target_runtime ; TfLite and ONNX Runtime always include CPU fallback. [...] npu Target NPU.",
+      "--qairt_version": "Specifies the version of Qualcomm AI Runtime to use in the job. This is applicable to: [...] Compile jobs targeting ONNX Runtime with an embedded Qualcomm AI Engine Direct context binary (i.e., precompiled_qnn_onnx ). All link, inference, and profile jobs. [...] Valid arguments are: major.minor version [...] latest , which will select the latest version.",
+      "--max_profiler_iterations": "Specifies the maximum number of profile iterations. Fewer iterations may be run if their cumulative runtime is predicted to exceed the execution timeout defined by --max_profiler_time . [...] Default: 100"
+    },
+    "docs": "https://app.aihub.qualcomm.com/docs/hub/api.html (fetched 2026-09-27)",
+    "compile_job_id": "jp4yy9yvp",
+    "group": "Day 3 whisper_tiny runtime x precision on NPU",
+    "device": "Snapdragon X Elite CRD",
+    "submitted_at": "2026-09-27T11:45:56+00:00",
+    "status": "SUCCESS"
+  },
+  {
+    "job_id": null,
+    "status": "SUBMIT_FAILED",
+    "error": "UserError: The --quantize_full_type option is not supported for target_runtime='ONNX'.",
+    "job_type": "compile",
+    "model": "whisper_tiny_float_encoder",
+    "cell": "onnx_fp16",
+    "runtime": "onnx",
+    "compute_unit": null,
+    "options": "--target_runtime onnx --output_names k_cache_cross_0,v_cache_cross_0,k_cache_cross_1,v_cache_cross_1,k_cache_cross_2,v_cache_cross_2,k_cache_cross_3,v_cache_cross_3 --quantize_full_type float16 --quantize_io",
+    "flags_checked": {
+      "--target_runtime": "Overrides the default target runtime. [...] onnx : ONNX Runtime ( .onnx ) precompiled_qnn_onnx : ONNX Runtime model with an embedded Qualcomm AI Engine Direct context binary.",
+      "--output_names": "Overrides the default output names. [...] When used, a name must be specified for each model output.",
+      "--quantize_full_type": "Quantizes an unquantized model to the specified type. [...] Options: int8 [...] int16 [...] w8a16 [...] w4a8 [...] w4a16 [...] Requirements: This option cannot be used if the input is an AIMET model, or if the target runtime is ONNX. NOTE: float16 is not a documented value and ONNX is a documented exclusion. precompiled_fp16 (Day 0) used float16 and compiled. onnx_fp16 uses it with ONNX by the author's decision.",
+      "--quantize_io": "Quantize the input and outputs when quantizing a model. Options: true (or no argument) false Default: Inputs and output are not quantized."
+    },
+    "docs": "https://app.aihub.qualcomm.com/docs/hub/api.html (fetched 2026-09-27)",
+    "derived_from": "onnx_fp32 compile job j5688od7g: add --quantize_full_type float16 --quantize_io",
+    "source_model_id": "mnwvkg23q",
+    "input_specs_from": "j5688od7g",
+    "context_docs": {
+      "qnn_enable_htp_fp16_precision (ONNX Runtime QNN EP option, not set here)": "Enable a fp32 model to be inferenced with fp16 precision. This option greatly improves performance of models with any fp32 inputs. Default is 1 (enable).",
+      "default_graph_htp_precision (QNN option, not set here)": "If no precision value is set, the QNN HTP backend assumes that the client expects to run a quantized network. When the precision value is set to FLOAT16 , the QNN HTP backend will convert user provided float32 inputs to float16 and execute the graph with float16 math."
+    },
+    "group": "Day 3 whisper_tiny runtime x precision on NPU",
+    "device": "Snapdragon X Elite CRD",
+    "submitted_at": "2026-09-27T11:46:01+00:00"
+  },
+  {
+    "job_id": null,
+    "status": "SUBMIT_FAILED",
+    "error": "UserError: The --quantize_full_type option is not supported for target_runtime='ONNX'.",
+    "job_type": "compile",
+    "model": "whisper_tiny_float_decoder",
+    "cell": "onnx_fp16",
+    "runtime": "onnx",
+    "compute_unit": null,
+    "options": "--target_runtime onnx --output_names logits,k_cache_self_0_out,v_cache_self_0_out,k_cache_self_1_out,v_cache_self_1_out,k_cache_self_2_out,v_cache_self_2_out,k_cache_self_3_out,v_cache_self_3_out --quantize_full_type float16 --quantize_io",
+    "flags_checked": {
+      "--target_runtime": "Overrides the default target runtime. [...] onnx : ONNX Runtime ( .onnx ) precompiled_qnn_onnx : ONNX Runtime model with an embedded Qualcomm AI Engine Direct context binary.",
+      "--output_names": "Overrides the default output names. [...] When used, a name must be specified for each model output.",
+      "--quantize_full_type": "Quantizes an unquantized model to the specified type. [...] Options: int8 [...] int16 [...] w8a16 [...] w4a8 [...] w4a16 [...] Requirements: This option cannot be used if the input is an AIMET model, or if the target runtime is ONNX. NOTE: float16 is not a documented value and ONNX is a documented exclusion. precompiled_fp16 (Day 0) used float16 and compiled. onnx_fp16 uses it with ONNX by the author's decision.",
+      "--quantize_io": "Quantize the input and outputs when quantizing a model. Options: true (or no argument) false Default: Inputs and output are not quantized."
+    },
+    "docs": "https://app.aihub.qualcomm.com/docs/hub/api.html (fetched 2026-09-27)",
+    "derived_from": "onnx_fp32 compile job jp3zzowz5: add --quantize_full_type float16 --quantize_io",
+    "source_model_id": "mq33z49rq",
+    "input_specs_from": "jp3zzowz5",
+    "context_docs": {
+      "qnn_enable_htp_fp16_precision (ONNX Runtime QNN EP option, not set here)": "Enable a fp32 model to be inferenced with fp16 precision. This option greatly improves performance of models with any fp32 inputs. Default is 1 (enable).",
+      "default_graph_htp_precision (QNN option, not set here)": "If no precision value is set, the QNN HTP backend assumes that the client expects to run a quantized network. When the precision value is set to FLOAT16 , the QNN HTP backend will convert user provided float32 inputs to float16 and execute the graph with float16 math."
+    },
+    "group": "Day 3 whisper_tiny runtime x precision on NPU",
+    "device": "Snapdragon X Elite CRD",
+    "submitted_at": "2026-09-27T11:46:06+00:00"
+  },
+  {
+    "job_id": "jp4y2q3qp",
+    "url": "https://workbench.aihub.qualcomm.com/jobs/jp4y2q3qp/",
+    "job_type": "compile",
+    "model": "whisper_tiny_float_encoder",
+    "cell": "precompiled_fp32",
+    "runtime": "precompiled_qnn_onnx",
+    "compute_unit": null,
+    "options": "--target_runtime precompiled_qnn_onnx --qairt_version 2.50 --output_names k_cache_cross_0,v_cache_cross_0,k_cache_cross_1,v_cache_cross_1,k_cache_cross_2,v_cache_cross_2,k_cache_cross_3,v_cache_cross_3 --qnn_options context_enable_graphs=hf_whisper_encoder",
+    "flags_checked": {
+      "--target_runtime": "Overrides the default target runtime. [...] onnx : ONNX Runtime ( .onnx ) precompiled_qnn_onnx : ONNX Runtime model with an embedded Qualcomm AI Engine Direct context binary.",
+      "--qairt_version": "Specifies the version of Qualcomm AI Runtime to use in the job. This is applicable to: [...] Compile jobs targeting ONNX Runtime with an embedded Qualcomm AI Engine Direct context binary (i.e., precompiled_qnn_onnx ). All link, inference, and profile jobs. [...] Valid arguments are: major.minor version [...] latest , which will select the latest version.",
+      "--output_names": "Overrides the default output names. [...] When used, a name must be specified for each model output.",
+      "--qnn_options": "Specify behavior when generating a Qualcomm AI Engine Direct context binary. [...] context_enable_graphs=<name> On- and offline preparation : The name of the graphs to compile into a model file or load at runtime."
+    },
+    "docs": "https://app.aihub.qualcomm.com/docs/hub/api.html (fetched 2026-09-27)",
+    "derived_from": "precompiled_fp16 compile job jp1nnvn2g: remove --quantize_full_type float16 --quantize_io, pin --qairt_version 2.50",
+    "source_model_id": "mnwvkg23q",
+    "input_specs_from": "jp1nnvn2g",
+    "context_docs": {
+      "qnn_enable_htp_fp16_precision (ONNX Runtime QNN EP option, not set here)": "Enable a fp32 model to be inferenced with fp16 precision. This option greatly improves performance of models with any fp32 inputs. Default is 1 (enable).",
+      "default_graph_htp_precision (QNN option, not set here)": "If no precision value is set, the QNN HTP backend assumes that the client expects to run a quantized network. When the precision value is set to FLOAT16 , the QNN HTP backend will convert user provided float32 inputs to float16 and execute the graph with float16 math."
+    },
+    "group": "Day 3 whisper_tiny runtime x precision on NPU",
+    "device": "Snapdragon X Elite CRD",
+    "submitted_at": "2026-09-27T11:46:13+00:00",
+    "status": "SUCCESS"
+  },
+  {
+    "job_id": "jpxlzvxjp",
+    "url": "https://workbench.aihub.qualcomm.com/jobs/jpxlzvxjp/",
+    "job_type": "compile",
+    "model": "whisper_tiny_float_decoder",
+    "cell": "precompiled_fp32",
+    "runtime": "precompiled_qnn_onnx",
+    "compute_unit": null,
+    "options": "--target_runtime precompiled_qnn_onnx --qairt_version 2.50 --output_names logits,k_cache_self_0_out,v_cache_self_0_out,k_cache_self_1_out,v_cache_self_1_out,k_cache_self_2_out,v_cache_self_2_out,k_cache_self_3_out,v_cache_self_3_out --qnn_options context_enable_graphs=hf_whisper_decoder",
+    "flags_checked": {
+      "--target_runtime": "Overrides the default target runtime. [...] onnx : ONNX Runtime ( .onnx ) precompiled_qnn_onnx : ONNX Runtime model with an embedded Qualcomm AI Engine Direct context binary.",
+      "--qairt_version": "Specifies the version of Qualcomm AI Runtime to use in the job. This is applicable to: [...] Compile jobs targeting ONNX Runtime with an embedded Qualcomm AI Engine Direct context binary (i.e., precompiled_qnn_onnx ). All link, inference, and profile jobs. [...] Valid arguments are: major.minor version [...] latest , which will select the latest version.",
+      "--output_names": "Overrides the default output names. [...] When used, a name must be specified for each model output.",
+      "--qnn_options": "Specify behavior when generating a Qualcomm AI Engine Direct context binary. [...] context_enable_graphs=<name> On- and offline preparation : The name of the graphs to compile into a model file or load at runtime."
+    },
+    "docs": "https://app.aihub.qualcomm.com/docs/hub/api.html (fetched 2026-09-27)",
+    "derived_from": "precompiled_fp16 compile job jp4yy9yvp: remove --quantize_full_type float16 --quantize_io, pin --qairt_version 2.50",
+    "source_model_id": "mq33z49rq",
+    "input_specs_from": "jp4yy9yvp",
+    "context_docs": {
+      "qnn_enable_htp_fp16_precision (ONNX Runtime QNN EP option, not set here)": "Enable a fp32 model to be inferenced with fp16 precision. This option greatly improves performance of models with any fp32 inputs. Default is 1 (enable).",
+      "default_graph_htp_precision (QNN option, not set here)": "If no precision value is set, the QNN HTP backend assumes that the client expects to run a quantized network. When the precision value is set to FLOAT16 , the QNN HTP backend will convert user provided float32 inputs to float16 and execute the graph with float16 math."
+    },
+    "group": "Day 3 whisper_tiny runtime x precision on NPU",
+    "device": "Snapdragon X Elite CRD",
+    "submitted_at": "2026-09-27T11:46:20+00:00",
+    "status": "SUCCESS"
+  },
+  {
+    "job_id": "jp0mxyj2g",
+    "url": "https://workbench.aihub.qualcomm.com/jobs/jp0mxyj2g/",
+    "job_type": "profile",
+    "model": "whisper_tiny_float_encoder",
+    "cell": "precompiled_fp32",
+    "runtime": "precompiled_qnn_onnx",
+    "compute_unit": "NPU",
+    "options": "--compute_unit npu --qairt_version 2.50 --max_profiler_iterations 100",
+    "flags_checked": {
+      "--compute_unit": "Specifies the target compute unit(s). [...] When used in a profile or inference job, this targets the specified compute unit(s). Implicit fall back to CPU will be determined by the target_runtime ; TfLite and ONNX Runtime always include CPU fallback. [...] npu Target NPU.",
+      "--qairt_version": "Specifies the version of Qualcomm AI Runtime to use in the job. This is applicable to: [...] Compile jobs targeting ONNX Runtime with an embedded Qualcomm AI Engine Direct context binary (i.e., precompiled_qnn_onnx ). All link, inference, and profile jobs. [...] Valid arguments are: major.minor version [...] latest , which will select the latest version.",
+      "--max_profiler_iterations": "Specifies the maximum number of profile iterations. Fewer iterations may be run if their cumulative runtime is predicted to exceed the execution timeout defined by --max_profiler_time . [...] Default: 100"
+    },
+    "docs": "https://app.aihub.qualcomm.com/docs/hub/api.html (fetched 2026-09-27)",
+    "compile_job_id": "jp4y2q3qp",
+    "group": "Day 3 whisper_tiny runtime x precision on NPU",
+    "device": "Snapdragon X Elite CRD",
+    "submitted_at": "2026-09-27T11:47:27+00:00",
+    "status": "SUCCESS"
+  },
+  {
+    "job_id": "j5qld8y7p",
+    "url": "https://workbench.aihub.qualcomm.com/jobs/j5qld8y7p/",
+    "job_type": "profile",
+    "model": "whisper_tiny_float_decoder",
+    "cell": "precompiled_fp32",
+    "runtime": "precompiled_qnn_onnx",
+    "compute_unit": "NPU",
+    "options": "--compute_unit npu --qairt_version 2.50 --max_profiler_iterations 100",
+    "flags_checked": {
+      "--compute_unit": "Specifies the target compute unit(s). [...] When used in a profile or inference job, this targets the specified compute unit(s). Implicit fall back to CPU will be determined by the target_runtime ; TfLite and ONNX Runtime always include CPU fallback. [...] npu Target NPU.",
+      "--qairt_version": "Specifies the version of Qualcomm AI Runtime to use in the job. This is applicable to: [...] Compile jobs targeting ONNX Runtime with an embedded Qualcomm AI Engine Direct context binary (i.e., precompiled_qnn_onnx ). All link, inference, and profile jobs. [...] Valid arguments are: major.minor version [...] latest , which will select the latest version.",
+      "--max_profiler_iterations": "Specifies the maximum number of profile iterations. Fewer iterations may be run if their cumulative runtime is predicted to exceed the execution timeout defined by --max_profiler_time . [...] Default: 100"
+    },
+    "docs": "https://app.aihub.qualcomm.com/docs/hub/api.html (fetched 2026-09-27)",
+    "compile_job_id": "jpxlzvxjp",
+    "group": "Day 3 whisper_tiny runtime x precision on NPU",
+    "device": "Snapdragon X Elite CRD",
+    "submitted_at": "2026-09-27T11:47:56+00:00",
+    "status": "SUCCESS"
+  }
+]
