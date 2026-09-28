@@ -1,0 +1,35 @@
+{
+ "note": "Derived from tensor shapes and dtypes in day3_decoder_signatures.json, not a measurement. bytes = product(shape) * bytes per element (FLOAT 4, FLOAT16 2, INT32 4), summed over the graph inputs (passed in) and outputs (passed out) of one decoder call.",
+ "cells": {
+  "precompiled_fp32": {
+   "compile_job": "jpxlzvxjp",
+   "by_group": {
+    "inputs:input_ids": 4,
+    "inputs:position_ids": 4,
+    "inputs:self_cache": 2445312,
+    "inputs:attention_mask": 800,
+    "inputs:cross_cache": 18432000,
+    "outputs:self_cache": 2445312,
+    "outputs:logits": 207460
+   },
+   "bytes_in": 20878120,
+   "bytes_out": 2652772,
+   "bytes_total": 23530892
+  },
+  "precompiled_fp16": {
+   "compile_job": "jp4yy9yvp",
+   "by_group": {
+    "inputs:input_ids": 4,
+    "inputs:position_ids": 4,
+    "inputs:self_cache": 1222656,
+    "inputs:attention_mask": 400,
+    "inputs:cross_cache": 9216000,
+    "outputs:self_cache": 1222656,
+    "outputs:logits": 103730
+   },
+   "bytes_in": 10439064,
+   "bytes_out": 1326386,
+   "bytes_total": 11765450
+  }
+ }
+}

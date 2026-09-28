@@ -1,0 +1,571 @@
+{
+ "source": "ONNX wrapper graph inputs and outputs of the AI Hub target models (not a measurement)",
+ "cells": {
+  "precompiled_fp32": {
+   "compile_job": "jpxlzvxjp",
+   "target_model_id": "mq80g40zn",
+   "inputs": [
+    {
+     "name": "input_ids",
+     "dtype": "INT32",
+     "shape": [
+      1,
+      1
+     ]
+    },
+    {
+     "name": "position_ids",
+     "dtype": "INT32",
+     "shape": [
+      1
+     ]
+    },
+    {
+     "name": "k_cache_self_0_in",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      64,
+      199
+     ]
+    },
+    {
+     "name": "v_cache_self_0_in",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      199,
+      64
+     ]
+    },
+    {
+     "name": "attention_mask",
+     "dtype": "FLOAT",
+     "shape": [
+      1,
+      1,
+      1,
+      200
+     ]
+    },
+    {
+     "name": "k_cache_cross_0",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      64,
+      1500
+     ]
+    },
+    {
+     "name": "v_cache_cross_0",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      1500,
+      64
+     ]
+    },
+    {
+     "name": "k_cache_self_1_in",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      64,
+      199
+     ]
+    },
+    {
+     "name": "v_cache_self_1_in",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      199,
+      64
+     ]
+    },
+    {
+     "name": "k_cache_cross_1",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      64,
+      1500
+     ]
+    },
+    {
+     "name": "v_cache_cross_1",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      1500,
+      64
+     ]
+    },
+    {
+     "name": "k_cache_self_2_in",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      64,
+      199
+     ]
+    },
+    {
+     "name": "v_cache_self_2_in",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      199,
+      64
+     ]
+    },
+    {
+     "name": "k_cache_cross_2",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      64,
+      1500
+     ]
+    },
+    {
+     "name": "v_cache_cross_2",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      1500,
+      64
+     ]
+    },
+    {
+     "name": "k_cache_self_3_in",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      64,
+      199
+     ]
+    },
+    {
+     "name": "v_cache_self_3_in",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      199,
+      64
+     ]
+    },
+    {
+     "name": "k_cache_cross_3",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      64,
+      1500
+     ]
+    },
+    {
+     "name": "v_cache_cross_3",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      1500,
+      64
+     ]
+    }
+   ],
+   "outputs": [
+    {
+     "name": "k_cache_self_0_out",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      64,
+      199
+     ]
+    },
+    {
+     "name": "v_cache_self_0_out",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      199,
+      64
+     ]
+    },
+    {
+     "name": "k_cache_self_1_out",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      64,
+      199
+     ]
+    },
+    {
+     "name": "v_cache_self_1_out",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      199,
+      64
+     ]
+    },
+    {
+     "name": "k_cache_self_2_out",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      64,
+      199
+     ]
+    },
+    {
+     "name": "v_cache_self_2_out",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      199,
+      64
+     ]
+    },
+    {
+     "name": "k_cache_self_3_out",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      64,
+      199
+     ]
+    },
+    {
+     "name": "v_cache_self_3_out",
+     "dtype": "FLOAT",
+     "shape": [
+      6,
+      1,
+      199,
+      64
+     ]
+    },
+    {
+     "name": "logits",
+     "dtype": "FLOAT",
+     "shape": [
+      1,
+      51865,
+      1,
+      1
+     ]
+    }
+   ]
+  },
+  "precompiled_fp16": {
+   "compile_job": "jp4yy9yvp",
+   "target_model_id": "mqpkev2vn",
+   "inputs": [
+    {
+     "name": "input_ids",
+     "dtype": "INT32",
+     "shape": [
+      1,
+      1
+     ]
+    },
+    {
+     "name": "position_ids",
+     "dtype": "INT32",
+     "shape": [
+      1
+     ]
+    },
+    {
+     "name": "k_cache_self_0_in",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      64,
+      199
+     ]
+    },
+    {
+     "name": "v_cache_self_0_in",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      199,
+      64
+     ]
+    },
+    {
+     "name": "attention_mask",
+     "dtype": "FLOAT16",
+     "shape": [
+      1,
+      1,
+      1,
+      200
+     ]
+    },
+    {
+     "name": "k_cache_cross_0",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      64,
+      1500
+     ]
+    },
+    {
+     "name": "v_cache_cross_0",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      1500,
+      64
+     ]
+    },
+    {
+     "name": "k_cache_self_1_in",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      64,
+      199
+     ]
+    },
+    {
+     "name": "v_cache_self_1_in",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      199,
+      64
+     ]
+    },
+    {
+     "name": "k_cache_cross_1",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      64,
+      1500
+     ]
+    },
+    {
+     "name": "v_cache_cross_1",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      1500,
+      64
+     ]
+    },
+    {
+     "name": "k_cache_self_2_in",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      64,
+      199
+     ]
+    },
+    {
+     "name": "v_cache_self_2_in",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      199,
+      64
+     ]
+    },
+    {
+     "name": "k_cache_cross_2",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      64,
+      1500
+     ]
+    },
+    {
+     "name": "v_cache_cross_2",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      1500,
+      64
+     ]
+    },
+    {
+     "name": "k_cache_self_3_in",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      64,
+      199
+     ]
+    },
+    {
+     "name": "v_cache_self_3_in",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      199,
+      64
+     ]
+    },
+    {
+     "name": "k_cache_cross_3",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      64,
+      1500
+     ]
+    },
+    {
+     "name": "v_cache_cross_3",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      1500,
+      64
+     ]
+    }
+   ],
+   "outputs": [
+    {
+     "name": "k_cache_self_0_out",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      64,
+      199
+     ]
+    },
+    {
+     "name": "v_cache_self_0_out",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      199,
+      64
+     ]
+    },
+    {
+     "name": "k_cache_self_1_out",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      64,
+      199
+     ]
+    },
+    {
+     "name": "v_cache_self_1_out",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      199,
+      64
+     ]
+    },
+    {
+     "name": "k_cache_self_2_out",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      64,
+      199
+     ]
+    },
+    {
+     "name": "v_cache_self_2_out",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      199,
+      64
+     ]
+    },
+    {
+     "name": "k_cache_self_3_out",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      64,
+      199
+     ]
+    },
+    {
+     "name": "v_cache_self_3_out",
+     "dtype": "FLOAT16",
+     "shape": [
+      6,
+      1,
+      199,
+      64
+     ]
+    },
+    {
+     "name": "logits",
+     "dtype": "FLOAT16",
+     "shape": [
+      1,
+      51865,
+      1,
+      1
+     ]
+    }
+   ]
+  }
+ }
+}
