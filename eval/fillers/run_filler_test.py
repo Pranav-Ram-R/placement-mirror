@@ -5,12 +5,17 @@ using the checkpoints behind the whisper_tiny and distil_whisper models we profi
 on AI Hub. The checkpoint ids are read from the qai_hub_models source.
 
 Two conditions per model: no prompt, and one fixed disfluent prompt. For each clip
-it records the transcript, the fillers found, the decoded token counts and the wall
-time. Filler recall per model and condition = total found / total labeled.
+it records the fillers found, the decoded token counts and the wall time. Labels are counts
+per clip and filler type (no times), so fillers are matched by count: per clip and type,
+matched = min(found, labeled). Per model and condition:
+  recall = total matched / total labeled
+  precision = total matched / total found (a filler reported beyond the labeled count of
+  its type in that clip is one that was not labeled)
 
 Timings are saved as Measurement records (Source.LOCAL_X86_CPU, runtime
-"transformers", precision "float32"). Transcripts, token counts and recall go to
-<out-dir>/filler_results.json.
+"transformers", precision "float32"). Token counts, recall and precision go to
+<out-dir>/filler_results.json. Transcripts are the speaker's own words, so they go to
+<out-dir>/filler_transcripts_local.json, which is gitignored.
 
 Decoding setup, identical for every model and condition. It mirrors how the app will
 run Whisper, once per speech segment with the same prompt each time:
@@ -208,7 +213,7 @@ def main() -> int:
         "torch_threads": torch.get_num_threads(),
     }
     print(json.dumps(env, indent=1))
-    runs, measurements, models_info = [], [], {}
+    runs, measurements, models_info, transcripts = [], [], {}, []
     for model_id, (module, constant) in MODELS.items():
         checkpoint, source_file = checkpoint_from_source(module, constant)
         processor = WhisperProcessor.from_pretrained(checkpoint)
@@ -224,6 +229,7 @@ def main() -> int:
             for cid, name, path in clips:
                 audio = read_wav(path)
                 r = transcribe(model, processor, audio, prompt, english_only)
+                transcripts.append({"model": model_id, "condition": condition, "clip": name, "text": r["text"]})
                 found, by_type = count_fillers(r["text"])
                 lab = labels[cid]
                 per_window = [token_counts(ids, processor.tokenizer) for ids in r["ids_per_window"]]
@@ -231,9 +237,11 @@ def main() -> int:
                 runs.append({
                     "model": model_id, "checkpoint": checkpoint, "condition": condition, "clip": name,
                     "audio_seconds": round(len(audio) / RATE, 3), "windows_s": r["windows_s"],
-                    "tokens_per_window": per_window, "transcript": r["text"], "fillers_found": found,
+                    "tokens_per_window": per_window, "fillers_found": found,
                     "found_by_type": by_type, "found_total": len(found), "labeled_by_type": lab,
-                    "labeled_total": sum(lab.values()), **tokens,
+                    "labeled_total": sum(lab.values()),
+                    "matched_by_type": {t: min(by_type[t], lab[t]) for t in TYPES},
+                    "matched_total": sum(min(by_type[t], lab[t]) for t in TYPES), **tokens,
                 })
                 measurements.append(Measurement(
                     model=checkpoint, metric="transcribe_wall_time", value=r["wall_s"] * 1000, unit="ms",
@@ -252,11 +260,16 @@ def main() -> int:
             rs = [r for r in runs if r["model"] == model_id and r["condition"] == condition]
             found = sum(r["found_total"] for r in rs)
             labeled = sum(r["labeled_total"] for r in rs)
+            matched = sum(r["matched_total"] for r in rs)
             summary.append({
                 "model": model_id, "checkpoint": models_info[model_id]["checkpoint"], "condition": condition,
-                "clips": len(rs), "total_found": found, "total_labeled": labeled,
-                "recall": (found / labeled) if labeled else None,
-                "recall_formula": "Derived: total_found / total_labeled (found can exceed labeled)",
+                "clips": len(rs), "total_found": found, "total_labeled": labeled, "total_matched": matched,
+                "recall": (matched / labeled) if labeled else None,
+                "recall_formula": "Derived: total_matched / total_labeled, matched = min(found, labeled) per clip "
+                                  "and filler type",
+                "precision": (matched / found) if found else None,
+                "precision_formula": "Derived: total_matched / total_found",
+                "found_over_labeled": (found / labeled) if labeled else None,
                 "found_by_type": {t: sum(r["found_by_type"][t] for r in rs) for t in TYPES},
                 "labeled_by_type": {t: sum(r["labeled_by_type"][t] for r in rs) for t in TYPES},
             })
@@ -271,20 +284,24 @@ def main() -> int:
                      "prompt": "prompt_ids on every window for the disfluent_prompt condition",
                      "previous_window_text": "not used",
                      "multilingual_forced": {"language": "en", "task": "transcribe"}},
-        "clips_dir": str(Path(args.clips_dir)), "source": args.source, "recordings_dir": str(Path(args.recordings_dir)),
+        "clips_dir": str(Path(args.clips_dir)), "clip_source": args.source,
+        "recordings_dir": str(Path(args.recordings_dir)),
         "labels_file": str(Path(args.labels)),
         "timings_file": str(out_dir / "filler_timings.json"),
         "summary": summary, "runs": runs,
     }
     (out_dir / "filler_results.json").write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
+    (out_dir / "filler_transcripts_local.json").write_text(json.dumps(transcripts, indent=1) + "\n", encoding="utf-8")
     save_json(measurements, out_dir / "filler_timings.json")
 
     print("\nSummary (Source: local x86 CPU, transformers, float32)")
-    print(f"| model | condition | clips | labeled | found | recall (Derived: found / labeled) |")
-    print("|---|---|---|---|---|---|")
+    print("| model | condition | clips | labeled | found | matched | recall | precision |")
+    print("|---|---|---|---|---|---|---|---|")
+    fmt3 = lambda v: f"{v:.3f}" if v is not None else "n/a"  # noqa: E731
     for s in summary:
-        recall = f"{s['recall']:.3f}" if s["recall"] is not None else "n/a"
-        print(f"| {s['model']} | {s['condition']} | {s['clips']} | {s['total_labeled']} | {s['total_found']} | {recall} |")
+        print(f"| {s['model']} | {s['condition']} | {s['clips']} | {s['total_labeled']} | {s['total_found']} | "
+              f"{s['total_matched']} | {fmt3(s['recall'])} | {fmt3(s['precision'])} |")
+    print("recall = matched / labeled, precision = matched / found (Derived), matched by count per clip and type")
     print("\nDecoded tokens per clip (excluding prompt and forced start tokens)")
     conds = [(m, c) for m in MODELS for c in CONDITIONS]
     print("| clip | " + " | ".join(f"{m} {c}" for m, c in conds) + " |")
