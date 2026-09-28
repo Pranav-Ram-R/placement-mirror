@@ -5,7 +5,8 @@ Every number is read from a results file, nothing is typed in:
 - eye contact (Task C): eval/eye_contact/results/<name>_results.json (head_pose_test.py)
 - pace: eval/pace/results/pace_results.json (pace/run_pace_test.py)
 
-Task B verdict: PASS if whisper_tiny recall >= 0.70 in either condition, else FAIL.
+Task B verdict: PASS if the app pipeline's whisper_tiny recall (app_whisper_tiny) is
+>= 0.70 in either condition, else FAIL.
 
 Usage: python eval/write_results.py --eye-contact eval/eye_contact/results/<name>_results.json
 """
@@ -18,6 +19,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 RECALL_TO_PASS = 0.70
+NOT_ON_DEVICE = "NPU fp16 transcripts not yet validated on device"
 LIMITS = ("Limitations: one speaker recorded in one room with one laptop microphone and camera, on {n}, "
           "so these numbers describe that setup only and are not a general accuracy estimate.")
 
@@ -38,21 +40,29 @@ def fillers(path: Path) -> tuple[list[str], str]:
     r = json.loads(path.read_text(encoding="utf-8"))
     rows = r["summary"]
     clips = rows[0]["clips"] if rows else 0
-    tiny = [s for s in rows if s["model"] == "whisper_tiny"]
-    passed = any(s["recall"] is not None and s["recall"] >= RECALL_TO_PASS for s in tiny)
+    app_id = r["verdict_model"]
+    app = [s for s in rows if s["model"] == app_id]
+    passed = any(s["recall"] is not None and s["recall"] >= RECALL_TO_PASS for s in app)
     verdict = "PASS" if passed else "FAIL"
+    models = r["models"]
+    app_models = ", ".join(f"{n} {m['runtime']} {m['precision']} on {m['compute_unit']}"
+                           for n, m in models[app_id]["models"].items())
+    refs = ", ".join(f"{k} = {m['checkpoint']}" for k, m in models.items() if m["pipeline"] == "reference")
     lines = ["## Filler detection (Task B)", "",
-             f"Source: {r['source']}, {r['runtime']} {r['precision']} reference models "
-             f"({', '.join(m['checkpoint'] for m in r['models'].values())}). Clips: {clips}. "
-             f"Labeled fillers: {rows[0]['total_labeled'] if rows else 0}. Prompt: \"{r['prompt']}\".", "",
-             "| Model | Condition | Clips | Labeled | Found | Matched | Recall | Precision |",
-             "|---|---|---|---|---|---|---|---|"]
+             f"Source: {r['source']}. {app_id} is the app's own speech path (VAD segments, the app's Whisper "
+             f"decode loop, {models[app_id]['runtime']}: {app_models}). The other rows are "
+             f"{next(m['runtime'] for m in models.values() if m['pipeline'] == 'reference')} float32 reference "
+             f"models for comparison ({refs}). {r['not_validated']}. Clips: {clips}. Labeled fillers: "
+             f"{rows[0]['total_labeled'] if rows else 0}. Prompt in the disfluent_prompt condition: "
+             f"\"{r['prompt']}\"", "",
+             "| Pipeline | Model | Condition | Clips | Labeled | Found | Matched | Recall | Precision |",
+             "|---|---|---|---|---|---|---|---|---|"]
     for s in rows:
-        lines.append(f"| {s['model']} | {s['condition']} | {s['clips']} | {s['total_labeled']} | {s['total_found']} | "
-                     f"{s['total_matched']} | {f3(s['recall'])} | {f3(s['precision'])} |")
+        lines.append(f"| {s['pipeline']} | {s['model']} | {s['condition']} | {s['clips']} | {s['total_labeled']} | "
+                     f"{s['total_found']} | {s['total_matched']} | {f3(s['recall'])} | {f3(s['precision'])} |")
     lines += ["", "Recall = matched / labeled, precision = matched / found, matched = min(found, labeled) per clip "
-              "and filler type (Derived). distil_whisper is for comparison only.", "",
-              f"Verdict: {verdict} (whisper_tiny recall {' and '.join(f3(s['recall']) for s in tiny)} "
+              "and filler type (Derived). The reference rows are for comparison only.", "",
+              f"Verdict: {verdict} ({app_id} recall {' and '.join(f3(s['recall']) for s in app)} "
               f"against {RECALL_TO_PASS:.2f} in either condition).", "",
               LIMITS.format(n=clips_text(clips)), ""]
     return lines, verdict
@@ -96,7 +106,7 @@ def pace(path: Path) -> list[str]:
     lines = ["## Speaking pace word count", "",
              f"Source: {r['source']}. The app's own speech path offline (Silero VAD segments, Whisper tiny on "
              f"{r['compute_units']['whisper_tiny_encoder']}, prompt {'on' if r['use_prompt'] else 'off'}), words "
-             f"counted by {r['word_counter']}. Clips: {len(r['results'])}.", "",
+             f"counted by {r['word_counter']}. {NOT_ON_DEVICE}. Clips: {len(r['results'])}.", "",
              "| Clip | Audio s | App words | Manual words | Error % |", "|---|---|---|---|---|"]
     for x in r["results"]:
         lines.append(f"| {x['clip']} | {f1(x['audio_s'])} | {x['app_words']} | {x['manual_words']} | "

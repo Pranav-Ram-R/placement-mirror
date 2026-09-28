@@ -1,9 +1,8 @@
 """Pace eval (Day 3 item 2c): the app's word count against a manual count.
 
 For each row of eval/pace/manual_counts.csv (columns clip, words), the clip's WAV goes
-through the app's own speech path offline, as the app processes it live: Silero VAD
-segmentation (app.audio.vad.Segmenter with config.AUDIO), Whisper tiny
-(app.audio.whisper.Whisper, prompt as in config.AUDIO.use_prompt) and
+through the app's own speech path offline (eval/app_speech.py: Silero VAD segments, then
+Whisper tiny with the prompt as in config.AUDIO.use_prompt) and
 app.analysis.live.count_words. Models load through ModelRunner, so on the x86 development
 machine they run on CPU.
 
@@ -25,22 +24,18 @@ import datetime as dt
 import json
 import platform
 import sys
-import wave
 from pathlib import Path
-
-import numpy as np
 
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 
 from app.analysis.live import count_words  # noqa: E402
 from app.audio.pipeline import AUDIO_MODELS  # noqa: E402
-from app.audio.vad import Block, Segmenter, SileroVad  # noqa: E402
-from app.audio.whisper import Whisper  # noqa: E402
 from app.config import AUDIO  # noqa: E402
 from app.runtime.runner import ModelRunner  # noqa: E402
 from app.storage.recordings import RECORDINGS_DIR  # noqa: E402
 from benchmarks.schema import Source  # noqa: E402
+from eval.app_speech import read_wav, transcribe  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 
@@ -48,27 +43,6 @@ HERE = Path(__file__).resolve().parent
 def clip_path(clip: str) -> Path:
     rec = RECORDINGS_DIR / clip / "audio.wav"
     return rec if rec.exists() else Path(clip)
-
-
-def read_wav(path: Path) -> np.ndarray:
-    with wave.open(str(path)) as w:
-        if (w.getframerate(), w.getnchannels(), w.getsampwidth()) != (AUDIO.sample_rate, 1, 2):
-            raise SystemExit(f"{path}: expected 16 kHz mono 16 bit PCM")
-        return np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float32) / 32768.0
-
-
-def app_transcribe(runner: ModelRunner, audio: np.ndarray) -> list[str]:
-    """Segments as the app forms them (VAD), each transcribed as the app does."""
-    segments = []
-    seg = Segmenter(SileroVad(runner, AUDIO.sample_rate), segments.append, lambda ev: None, AUDIO)
-    n = AUDIO.block_samples
-    block_s = n / AUDIO.sample_rate
-    for i in range(audio.size // n):
-        t = (i + 1) * block_s  # stream time at the end of the block, as the capture callback stamps it
-        seg.feed(Block(audio[i * n:(i + 1) * n].copy(), t, t))
-    seg.flush()
-    whisper = Whisper(runner, AUDIO.use_prompt)
-    return [whisper.transcribe(s.audio).text for s in segments]
 
 
 def main() -> int:
@@ -86,7 +60,7 @@ def main() -> int:
         clip, manual = row["clip"].strip(), int(row["words"])
         path = clip_path(clip)
         audio = read_wav(path)
-        texts = app_transcribe(runner, audio)
+        texts = transcribe(runner, audio, AUDIO.use_prompt)["texts"]
         app_words = sum(count_words(t) for t in texts)
         results.append({
             "clip": clip, "audio_s": round(audio.size / AUDIO.sample_rate, 3), "segments": len(texts),

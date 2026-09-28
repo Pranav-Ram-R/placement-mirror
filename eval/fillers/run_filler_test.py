@@ -1,24 +1,33 @@
 """Whisper filler capture kill test (Task B).
 
-Runs the float reference models on the local x86 CPU with Hugging Face transformers,
-using the checkpoints behind the whisper_tiny and distil_whisper models we profiled
-on AI Hub. The checkpoint ids are read from the qai_hub_models source.
+Primary: the app's own speech path (eval/app_speech.py): Silero VAD segments, then the
+app's Whisper tiny decode loop on the AI Hub ONNX models through ModelRunner, as the app
+runs it live. On the x86 development machine that is the onnx float32 models on CPU. The
+shipped NPU path (precompiled models, float16 math on the HTP) is not what runs here, so
+NPU fp16 transcripts are not yet validated on device. The verdict and the prompt default
+come from this pipeline (model id app_whisper_tiny).
 
-Two conditions per model: no prompt, and one fixed disfluent prompt. For each clip
-it records the fillers found, the decoded token counts and the wall time. Labels are counts
+Comparison: the float reference models with Hugging Face transformers on the local x86
+CPU, using the checkpoints behind the whisper_tiny and distil_whisper models we profiled
+on AI Hub (checkpoint ids read from the qai_hub_models source). distil_whisper is for
+comparison only.
+
+Two conditions per model: no prompt, and one fixed disfluent prompt (the app's filler
+prompt, config AUDIO.use_prompt). For each clip it records the fillers found, the decoded
+token counts and the wall time. Labels are counts
 per clip and filler type (no times), so fillers are matched by count: per clip and type,
 matched = min(found, labeled). Per model and condition:
   recall = total matched / total labeled
   precision = total matched / total found (a filler reported beyond the labeled count of
   its type in that clip is one that was not labeled)
 
-Timings are saved as Measurement records (Source.LOCAL_X86_CPU, runtime
-"transformers", precision "float32"). Token counts, recall and precision go to
+Timings are saved as Measurement records (Source.LOCAL_X86_CPU, runtime "onnx" for the
+app pipeline, "transformers" for the references). Token counts, recall and precision go to
 <out-dir>/filler_results.json. Transcripts are the speaker's own words, so they go to
 <out-dir>/filler_transcripts_local.json, which is gitignored.
 
-Decoding setup, identical for every model and condition. It mirrors how the app will
-run Whisper, once per speech segment with the same prompt each time:
+Reference decoding setup, identical for both reference models and conditions. It
+approximates how the app runs Whisper, once per piece of speech with the same prompt:
 - a clip longer than 30 s is split into windows of at most 30 s, each split at the
   quietest 100 ms frame between 20 s and 30 s into the current window
 - each window is decoded on its own (short-form), with the prompt when the condition
@@ -64,6 +73,7 @@ sys.path.insert(0, str(REPO))
 
 from app.storage.recordings import RECORDINGS_DIR, list_recordings  # noqa: E402
 from benchmarks.schema import Measurement, Source, save_json  # noqa: E402
+from eval import app_speech  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 PROMPT = "Umm, let me think, like, hmm. Okay, uh, here is what I think."
@@ -73,6 +83,8 @@ FORM_TO_TYPE = {"um": "um", "umm": "um", "uh": "uh", "uhh": "uh", "hmm": "hmm", 
 TYPES = ("um", "uh", "hmm")
 RATE = 16000
 
+APP_MODEL = "app_whisper_tiny"
+NOT_ON_DEVICE = "NPU fp16 transcripts not yet validated on device"
 # qai_hub_models model id -> (module holding the checkpoint constant, constant name)
 MODELS = {
     "whisper_tiny": ("qai_hub_models.models.whisper_tiny.model", "WHISPER_VERSION"),
@@ -214,13 +226,66 @@ def main() -> int:
     }
     print(json.dumps(env, indent=1))
     runs, measurements, models_info, transcripts = [], [], {}, []
+
+    def record(model_id, condition, cid, name, audio, text, extra):
+        transcripts.append({"model": model_id, "condition": condition, "clip": name, "text": text})
+        found, by_type = count_fillers(text)
+        lab = labels[cid]
+        runs.append({
+            "model": model_id, "condition": condition, "clip": name,
+            "audio_seconds": round(len(audio) / RATE, 3), "fillers_found": found,
+            "found_by_type": by_type, "found_total": len(found), "labeled_by_type": lab,
+            "labeled_total": sum(lab.values()),
+            "matched_by_type": {t: min(by_type[t], lab[t]) for t in TYPES},
+            "matched_total": sum(min(by_type[t], lab[t]) for t in TYPES), **extra,
+        })
+        print(f"   {condition:17} {name:22} labeled {sum(lab.values()):3} found {len(found):3} "
+              f"decoded text tokens {extra['decoded_text_tokens']:4}  {text[:90]}")
+
+    from app.audio.pipeline import AUDIO_MODELS
+    from app.audio.whisper import assets
+    from app.runtime.runner import ModelRunner
+    import onnxruntime
+
+    if assets()["prompts"]["filler_prompt"]["text"] != PROMPT:
+        raise SystemExit("the app's filler prompt differs from PROMPT")
+    runner = ModelRunner()
+    status = {name: runner.load(name) for name in AUDIO_MODELS}
+    app_units = sorted({st.compute_unit for st in status.values()})
+    models_info[APP_MODEL] = {
+        "pipeline": "app", "runtime": f"onnxruntime {onnxruntime.__version__}",
+        "models": {n: {"runtime": st.runtime, "precision": st.precision, "compute_unit": st.compute_unit,
+                       "file": Path(st.model_file).relative_to(REPO).as_posix()} for n, st in status.items()},
+        "not_validated": NOT_ON_DEVICE,
+    }
+    print(f"\n== {APP_MODEL}: app speech path, " + ", ".join(
+        f"{n} {st.runtime} {st.precision} on {st.compute_unit}" for n, st in status.items()))
+    app_speech.transcribe(runner, read_wav(clips[0][2])[: 5 * RATE], False)  # untimed warm-up
+    for condition in CONDITIONS:
+        for cid, name, path in clips:
+            audio = read_wav(path)
+            r = app_speech.transcribe(runner, audio, condition == "disfluent_prompt")
+            record(APP_MODEL, condition, cid, name, audio, r["text"],
+                   {"segments": r["segments"], "decoded_text_tokens": r["decoded_text_tokens"]})
+            measurements.append(Measurement(
+                model="app speech path (" + ", ".join(AUDIO_MODELS) + ")", metric="transcribe_wall_time",
+                value=r["wall_s"] * 1000, unit="ms", source=Source.LOCAL_X86_CPU, runtime="onnx",
+                compute_unit="+".join(app_units),
+                precision=status["whisper_tiny_decoder"].precision or "unknown",
+                ort_version=onnxruntime.__version__,
+                notes=(f"clip {name} ({len(audio) / RATE:.1f} s audio), condition {condition}, "
+                       f"{r['segments']} VAD segment(s), VAD + mel + encoder + decode loop, "
+                       f"CPU {platform.processor()}, one untimed warm-up call before timing"),
+            ))
+
     for model_id, (module, constant) in MODELS.items():
         checkpoint, source_file = checkpoint_from_source(module, constant)
         processor = WhisperProcessor.from_pretrained(checkpoint)
         model = WhisperForConditionalGeneration.from_pretrained(checkpoint, torch_dtype=torch.float32).eval()
         dtypes = sorted({str(p.dtype) for p in model.parameters()})
         english_only = checkpoint.endswith(".en")
-        models_info[model_id] = {"checkpoint": checkpoint, "read_from": f"{constant} in {source_file}",
+        models_info[model_id] = {"pipeline": "reference", "runtime": f"transformers {transformers.__version__}",
+                                 "checkpoint": checkpoint, "read_from": f"{constant} in {source_file}",
                                  "parameter_dtypes": dtypes, "english_only": english_only}
         print(f"\n== {model_id}: {checkpoint} (from {constant}), parameters {dtypes}")
         # One untimed warm-up call per model so lazy initialization is not in the first timing.
@@ -229,20 +294,11 @@ def main() -> int:
             for cid, name, path in clips:
                 audio = read_wav(path)
                 r = transcribe(model, processor, audio, prompt, english_only)
-                transcripts.append({"model": model_id, "condition": condition, "clip": name, "text": r["text"]})
-                found, by_type = count_fillers(r["text"])
-                lab = labels[cid]
                 per_window = [token_counts(ids, processor.tokenizer) for ids in r["ids_per_window"]]
                 tokens = {k: sum(w[k] for w in per_window) for k in per_window[0]}
-                runs.append({
-                    "model": model_id, "checkpoint": checkpoint, "condition": condition, "clip": name,
-                    "audio_seconds": round(len(audio) / RATE, 3), "windows_s": r["windows_s"],
-                    "tokens_per_window": per_window, "fillers_found": found,
-                    "found_by_type": by_type, "found_total": len(found), "labeled_by_type": lab,
-                    "labeled_total": sum(lab.values()),
-                    "matched_by_type": {t: min(by_type[t], lab[t]) for t in TYPES},
-                    "matched_total": sum(min(by_type[t], lab[t]) for t in TYPES), **tokens,
-                })
+                record(model_id, condition, cid, name, audio, r["text"],
+                       {"checkpoint": checkpoint, "windows_s": r["windows_s"], "tokens_per_window": per_window,
+                        **tokens})
                 measurements.append(Measurement(
                     model=checkpoint, metric="transcribe_wall_time", value=r["wall_s"] * 1000, unit="ms",
                     source=Source.LOCAL_X86_CPU, runtime="transformers", compute_unit="CPU", precision="float32",
@@ -251,18 +307,16 @@ def main() -> int:
                            f"transformers {transformers.__version__}, {torch.get_num_threads()} torch threads, "
                            f"CPU {platform.processor()}, one untimed warm-up call per model before timing"),
                 ))
-                print(f"   {condition:17} {name:22} labeled {sum(lab.values()):3} found {len(found):3} "
-                      f"decoded tokens {tokens['decoded_tokens']:4}  {r['text'][:90]}")
 
     summary = []
-    for model_id in MODELS:
+    for model_id in [APP_MODEL, *MODELS]:
         for condition in CONDITIONS:
             rs = [r for r in runs if r["model"] == model_id and r["condition"] == condition]
             found = sum(r["found_total"] for r in rs)
             labeled = sum(r["labeled_total"] for r in rs)
             matched = sum(r["matched_total"] for r in rs)
             summary.append({
-                "model": model_id, "checkpoint": models_info[model_id]["checkpoint"], "condition": condition,
+                "model": model_id, "pipeline": models_info[model_id]["pipeline"], "condition": condition,
                 "clips": len(rs), "total_found": found, "total_labeled": labeled, "total_matched": matched,
                 "recall": (matched / labeled) if labeled else None,
                 "recall_formula": "Derived: total_matched / total_labeled, matched = min(found, labeled) per clip "
@@ -276,10 +330,10 @@ def main() -> int:
 
     results = {
         "created": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
-        "source": Source.LOCAL_X86_CPU.value, "runtime": "transformers", "precision": "float32",
+        "source": Source.LOCAL_X86_CPU.value, "verdict_model": APP_MODEL, "not_validated": NOT_ON_DEVICE,
         "environment": env, "models": models_info, "prompt": PROMPT, "conditions": list(CONDITIONS),
         "filler_regex": FILLER_RE.pattern + " (case-insensitive)", "form_to_type": FORM_TO_TYPE,
-        "decoding": {"num_beams": 1, "do_sample": False, "return_timestamps": False,
+        "reference_decoding": {"num_beams": 1, "do_sample": False, "return_timestamps": False,
                      "windows": "at most 30 s, split at the quietest 100 ms frame between 20 s and 30 s",
                      "prompt": "prompt_ids on every window for the disfluent_prompt condition",
                      "previous_window_text": "not used",
@@ -294,7 +348,8 @@ def main() -> int:
     (out_dir / "filler_transcripts_local.json").write_text(json.dumps(transcripts, indent=1) + "\n", encoding="utf-8")
     save_json(measurements, out_dir / "filler_timings.json")
 
-    print("\nSummary (Source: local x86 CPU, transformers, float32)")
+    print(f"\nSummary (Source: local x86 CPU). {APP_MODEL}: app pipeline, onnx on "
+          f"{'+'.join(app_units)}. Others: transformers float32 references. {NOT_ON_DEVICE}.")
     print("| model | condition | clips | labeled | found | matched | recall | precision |")
     print("|---|---|---|---|---|---|---|---|")
     fmt3 = lambda v: f"{v:.3f}" if v is not None else "n/a"  # noqa: E731
@@ -302,12 +357,12 @@ def main() -> int:
         print(f"| {s['model']} | {s['condition']} | {s['clips']} | {s['total_labeled']} | {s['total_found']} | "
               f"{s['total_matched']} | {fmt3(s['recall'])} | {fmt3(s['precision'])} |")
     print("recall = matched / labeled, precision = matched / found (Derived), matched by count per clip and type")
-    print("\nDecoded tokens per clip (excluding prompt and forced start tokens)")
-    conds = [(m, c) for m in MODELS for c in CONDITIONS]
+    print("\nDecoded text tokens per clip (excluding prompt, forced start tokens and end of text)")
+    conds = [(m, c) for m in [APP_MODEL, *MODELS] for c in CONDITIONS]
     print("| clip | " + " | ".join(f"{m} {c}" for m, c in conds) + " |")
     print("|---|" + "---|" * len(conds))
     for _, name, _ in clips:
-        row = [next(r["decoded_tokens"] for r in runs if r["clip"] == name and r["model"] == m and r["condition"] == c)
+        row = [next(r["decoded_text_tokens"] for r in runs if r["clip"] == name and r["model"] == m and r["condition"] == c)
                for m, c in conds]
         print(f"| {name} | " + " | ".join(str(v) for v in row) + " |")
     print(f"\nWrote {out_dir / 'filler_results.json'} and {len(measurements)} timing measurements to "
