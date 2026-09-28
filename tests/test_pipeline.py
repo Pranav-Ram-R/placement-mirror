@@ -197,12 +197,18 @@ def test_facing_flips_when_the_head_turns_away_after_calibration():
     ev = calibrate(pipe, runner)
     assert {"type": "calibration", "state": "done", "face": True, "pose": True, "message": ""} in events
     assert ev["face"]["facing"] is True
-    runner.yaw = 4.0 + VISION.facing_max_yaw_deg + 10
+    limit = VISION.facing_max_angle_deg
+    runner.yaw = 4.0 + limit + 10
     assert pipe.process(frame(21, 4.2))["face"]["facing"] is False
-    runner.yaw, runner.pitch = 4.0, -3.0 + VISION.facing_max_pitch_deg + 8
+    runner.yaw, runner.pitch = 4.0, -3.0 + limit + 8
     assert pipe.process(frame(22, 4.3))["face"]["facing"] is False
-    runner.pitch = -3.0
-    ev = pipe.process(frame(23, 4.4))
+    # one combined angle: each change alone is inside the limit, together they are not
+    runner.yaw, runner.pitch = 4.0 + 0.8 * limit, -3.0 - 0.8 * limit
+    assert pipe.process(frame(23, 4.4))["face"]["facing"] is False
+    runner.yaw, runner.pitch = 4.0 + 0.6 * limit, -3.0 - 0.6 * limit
+    assert pipe.process(frame(24, 4.5))["face"]["facing"] is True
+    runner.yaw, runner.pitch = 4.0, -3.0
+    ev = pipe.process(frame(25, 4.6))
     assert ev["face"]["facing"] is True and abs(ev["face"]["yaw_change"]) < 1.0
 
 

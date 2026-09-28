@@ -473,7 +473,7 @@ class VisionPipeline:
         if base is not None:
             d_yaw, d_pitch = pose["yaw"] - base["yaw"], pose["pitch"] - base["pitch"]
             result.update(yaw_change=d_yaw, pitch_change=d_pitch,
-                          facing=bool(abs(d_yaw) < cfg.facing_max_yaw_deg and abs(d_pitch) < cfg.facing_max_pitch_deg))
+                          facing=bool(np.hypot(d_yaw, d_pitch) < cfg.facing_max_angle_deg))
         return result
 
     def _pose(self, frame: Frame, get_padded) -> dict:

@@ -24,10 +24,11 @@ class VisionConfig:
     calibration_min_face_frames: int = 5
     calibration_min_pose_frames: int = 3
 
-    # Facing camera: |yaw| and |pitch| relative to calibration below these limits.
+    # Facing camera: the angular distance from the calibrated pose,
+    # sqrt(yaw_change^2 + pitch_change^2) in degrees, is below this limit. This is the rule
+    # eval/eye_contact/head_pose_test.py evaluates, and the limit is its threshold.
     # PROVISIONAL until Task C results (eye contact evaluation on a scripted recording).
-    facing_max_yaw_deg: float = 15.0
-    facing_max_pitch_deg: float = 12.0
+    facing_max_angle_deg: float = 15.0
 
     # Face detector and landmark tracking. Detector values are the qai_hub_models
     # mediapipe_face app defaults. The detector runs only when there is no track. A track

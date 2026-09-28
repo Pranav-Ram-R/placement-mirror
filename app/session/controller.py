@@ -247,7 +247,7 @@ class SessionController:
             "audio_source": audio_source,
             "calibration": {"state": cal.state, "face": cal.face, "pose": cal.pose, "message": cal.message},
             "thresholds": {k: getattr(self.vision.cfg, k) for k in (
-                "facing_max_yaw_deg", "facing_max_pitch_deg", "slouch_max_head_drop", "lean_max_tilt_deg")},
+                "facing_max_angle_deg", "slouch_max_head_drop", "lean_max_tilt_deg")},
             "vad": {k: getattr(AUDIO, k) for k in ("segment_end_silence_ms", "segment_max_s", "speech_pad_ms",
                                                    "pause_min_s")},
             "compute_units": {n: s["compute_unit"] for n, s in status.items()},

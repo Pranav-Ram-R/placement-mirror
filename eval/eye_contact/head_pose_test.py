@@ -16,7 +16,8 @@ Analysis, using the labels written by record_scripted.py:
 - per segment: calibrated yaw and pitch mean and standard deviation
 - facing vs away: facing = CAMERA, away = every other label. A threshold on the angular
   distance from zero is chosen on frames before --split-s (calibration frames excluded)
-  and tested on frames from --split-s on
+  and tested on frames from --split-s on. The app uses the same rule, and this threshold
+  is its limit (app.config VisionConfig.facing_max_angle_deg)
 - CAMERA vs SCREEN overlap in yaw and pitch
 
 Input: --video and --labels from record_scripted.py, or --recording with an app eval
