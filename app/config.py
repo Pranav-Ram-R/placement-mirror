@@ -121,6 +121,13 @@ class RuntimeConfig:
     })
     inter_op_threads: int = 1
     intra_op_allow_spinning: str = "0"
+    # The precompiled model each of these must be, by AI Hub compile job
+    # (benchmarks/optimization.md, Decision). aihub.fetch_models downloads exactly these, and
+    # the runner skips a precompiled model from any other job, so the onnx fallback steps run.
+    precompiled_compile_jobs: dict = field(default_factory=lambda: {
+        "whisper_tiny_encoder": "jp4y2q3qp",  # float32 I/O
+        "whisper_tiny_decoder": "jp4yy9yvp",  # float16 I/O
+    })
 
 
 RUNTIME = RuntimeConfig()

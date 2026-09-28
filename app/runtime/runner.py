@@ -3,7 +3,9 @@
 Load order per model (models/manifest.json lists the files):
 1. precompiled_qnn_onnx on a QNN EP NPU device, through the onnxruntime-qnn plugin EP API
    (register_execution_provider_library, get_ep_devices, add_provider_for_devices, as in
-   the onnxruntime/onnxruntime-qnn README "Getting Started with the Plugin QNN EP")
+   the onnxruntime/onnxruntime-qnn README "Getting Started with the Plugin QNN EP").
+   For a model in app.config.RUNTIME.precompiled_compile_jobs, the manifest entry must be
+   from that compile job, or this step fails with the reason.
 2. plain onnx on the QNN EP NPU device with EP context caching. Session config keys
    "ep.context_enable" = "1" and "ep.context_file_path", from the onnxruntime-qnn docs
    "QNN context binary cache feature". A cached context model is loaded when present.
@@ -183,6 +185,11 @@ class ModelRunner:
 
     def _precompiled(self, name: str, st: ModelStatus):
         path = self._file(name, "precompiled_qnn_onnx")
+        pinned = self.runtime.precompiled_compile_jobs.get(name)
+        job = self.variants[name]["precompiled_qnn_onnx"].get("job_id")
+        if pinned and job != pinned:
+            raise RuntimeError(f"manifest has compile job {job}, config pins {pinned} "
+                               "(run python -m aihub.fetch_models)")
         st.runtime, st.model_file = "precompiled_qnn_onnx", str(path)
         return self.qnn.session(path, {}, self.options(name))
 

@@ -102,9 +102,9 @@ code 0) and uploads `PlacementMirror-win-arm64.zip` as a workflow artifact.
 ```
 
 Models are not in git. `tools\package_models.py` packs the files listed in
-`models/manifest.json` into `dist\models-v1.zip` and writes its sha256 to
-`packaging/models-v1.sha256`. The author uploads that zip once as the asset of a release
-tagged `models-v1`. `tools\fetch_models.py` downloads it (or takes `--zip`), checks the
+`models/manifest.json` into `dist\models-v2.zip` and writes its sha256 to
+`packaging/models-v2.sha256`. The author uploads that zip once as the asset of a release
+tagged `models-v2`. `tools\fetch_models.py` downloads it (or takes `--zip`), checks the
 sha256 and extracts it. The app itself never downloads anything.
 
 `THIRD_PARTY_LICENSES.md` lists the models, the native libraries and every Python package

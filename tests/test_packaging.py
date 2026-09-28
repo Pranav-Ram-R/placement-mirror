@@ -38,13 +38,13 @@ def test_models_zip_is_deterministic_and_checked_against_the_manifest(tmp_path):
 def test_fetch_checks_the_hash_and_extracts_only_model_paths(tmp_path, monkeypatch):
     fake_models(tmp_path)
     digest = package_models.build_zip(tmp_path / "m.zip", tmp_path)
-    hash_file = tmp_path / "models-v1.sha256"
+    hash_file = tmp_path / "models-v2.sha256"
     monkeypatch.setattr(fetch_models, "HASH_FILE", hash_file)
-    hash_file.write_text("0" * 64 + "  models-v1.zip\n")
+    hash_file.write_text("0" * 64 + "  models-v2.zip\n")
     monkeypatch.setattr("sys.argv", ["fetch", "--zip", str(tmp_path / "m.zip"), "--dest", str(tmp_path / "out")])
     with pytest.raises(SystemExit, match="expects"):
         fetch_models.main()
-    hash_file.write_text(f"{digest}  models-v1.zip\n")
+    hash_file.write_text(f"{digest}  models-v2.zip\n")
     assert fetch_models.main() == 0
     assert (tmp_path / "out/models/a/onnx/model.onnx").read_bytes() == b"weights"
     with zipfile.ZipFile(tmp_path / "bad.zip", "w") as zf:

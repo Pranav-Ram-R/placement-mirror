@@ -120,6 +120,37 @@ def test_session_without_qnn_provider_counts_as_failure(tmp_path):
     assert "session reports providers ['CPUExecutionProvider']" in st.reason()
 
 
+def test_precompiled_model_from_another_compile_job_than_pinned_is_skipped(tmp_path):
+    from app.config import RuntimeConfig
+
+    manifest = make_manifest(tmp_path)
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    for e in data["models"]:
+        e["job_id"] = "jold" if e["runtime"] == "precompiled_qnn_onnx" else "jonnx"
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    pinned = RuntimeConfig(precompiled_compile_jobs={"m1": "jnew"})
+    qnn = FakeQnn()
+    st = ModelRunner(manifest, qnn=qnn, cache_dir=tmp_path / "cache", runtime=pinned).load("m1")
+    assert st.path == STEP_ONNX_QNN and st.compute_unit == "NPU"
+    assert "manifest has compile job jold, config pins jnew" in st.attempts[0].reason
+    assert [p.parent.name for p, _ in qnn.calls] == ["onnx"]
+    ok = RuntimeConfig(precompiled_compile_jobs={"m1": "jold"})
+    st = ModelRunner(manifest, qnn=FakeQnn(), cache_dir=tmp_path / "cache2", runtime=ok).load("m1")
+    assert st.path == STEP_PRECOMPILED
+
+
+def test_shipping_pins_match_the_manifest():
+    from app.config import RUNTIME
+    from app.runtime.runner import MANIFEST
+
+    if not MANIFEST.exists():
+        pytest.skip("models/manifest.json missing")
+    entries = {(e["name"], e["runtime"]): e for e in json.loads(MANIFEST.read_text(encoding="utf-8"))["models"]}
+    for name, job in RUNTIME.precompiled_compile_jobs.items():
+        assert entries[(name, "precompiled_qnn_onnx")]["job_id"] == job
+        assert (name, "onnx") in entries  # the onnx fallback stays in the manifest
+
+
 def test_missing_precompiled_then_cached_ep_context_is_loaded(tmp_path):
     cache = tmp_path / "cache"
     cache.mkdir()

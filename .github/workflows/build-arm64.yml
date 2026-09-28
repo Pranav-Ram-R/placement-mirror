@@ -1,6 +1,6 @@
 name: build-arm64
 
-# Packaged app for Windows ARM64: PyInstaller one-folder build, models from the models-v1
+# Packaged app for Windows ARM64: PyInstaller one-folder build, models from the models-v2
 # release asset, smoke test, zip uploaded as a workflow artifact. This workflow never
 # creates a release.
 
@@ -59,7 +59,7 @@ jobs:
           path: dist/PlacementMirror/THIRD_PARTY_LICENSES.md
           if-no-files-found: error
 
-      - name: Download models-v1 (release asset, sha256 checked)
+      - name: Download models-v2 (release asset, sha256 checked)
         run: .venv-build\Scripts\python tools/fetch_models.py --dest dist\PlacementMirror\_internal
 
       - name: Smoke test (start, /health reports CPU fallback mode, clean shutdown)

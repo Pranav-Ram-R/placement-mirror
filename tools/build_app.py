@@ -2,7 +2,7 @@
 
 Contents: PlacementMirror.exe (app.launcher) and _internal/ with Python, the app code, the
 UI, the question bank, the Whisper assets, the Python packages and ONNX Runtime with the
-QNN libraries. Models are not built in: extract models-v1.zip into
+QNN libraries. Models are not built in: extract models-v2.zip into
 dist/PlacementMirror/_internal (python tools/fetch_models.py --dest dist/PlacementMirror/_internal).
 
 After PyInstaller it:

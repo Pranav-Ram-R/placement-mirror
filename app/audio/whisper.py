@@ -16,8 +16,10 @@ transformers does. With use_prompt (config, default off) the Task B filler promp
 (start of previous, prompt text) go before the prefix. Text comes from the token bytes
 in vocab_bytes.json. Special tokens are dropped.
 
-Input and cache dtypes follow the loaded session (float16 for the precompiled models,
-float32 for the onnx models).
+Input and cache dtypes follow each loaded session. The shipped precompiled encoder has
+float32 I/O and the precompiled decoder float16 I/O (benchmarks/optimization.md), so the
+encoder's float32 cross attention caches are cast to float16 for the decoder. The onnx
+models are float32. The mixed precompiled pair is not yet validated on device.
 """
 
 from __future__ import annotations

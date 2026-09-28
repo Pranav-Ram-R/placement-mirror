@@ -1,5 +1,5 @@
 {
-  "written": "2026-09-25T06:08:58+00:00",
+  "written": "2026-09-28T10:35:59+00:00",
   "models": [
     {
       "name": "face_detector",
@@ -247,29 +247,31 @@
     {
       "name": "whisper_tiny_encoder",
       "runtime": "precompiled_qnn_onnx",
-      "precision": "float16",
-      "precision_evidence": "compile job jp1nnvn2g has --quantize_full_type float16 and target model float I/O is float16",
-      "job_id": "jp1nnvn2g",
+      "precision": "float32",
+      "precision_evidence": "compile job jp4y2q3qp has no quantize option and target model float I/O is float32",
+      "job_id": "jp4y2q3qp",
       "source": "AI Hub compile job",
       "aihub_model": "whisper_tiny_float_encoder",
-      "compile_options": "--target_runtime precompiled_qnn_onnx --qairt_version latest --output_names k_cache_cross_0,v_cache_cross_0,k_cache_cross_1,v_cache_cross_1,k_cache_cross_2,v_cache_cross_2,k_cache_cross_3,v_cache_cross_3 --qnn_options context_enable_graphs=hf_whisper_encoder --quantize_full_type float16 --quantize_io",
-      "target_model_id": "mmrgv496q",
+      "compile_options": "--target_runtime precompiled_qnn_onnx --qairt_version 2.50 --output_names k_cache_cross_0,v_cache_cross_0,k_cache_cross_1,v_cache_cross_1,k_cache_cross_2,v_cache_cross_2,k_cache_cross_3,v_cache_cross_3 --qnn_options context_enable_graphs=hf_whisper_encoder",
+      "target_model_id": "mq9yj5yln",
       "qairt_sdk_version": "2.50.0.260828221209",
       "onnx": "models/whisper_tiny_encoder/precompiled_qnn_onnx/model.onnx",
-      "sha256": "3671c54d0b63c50b6501782f8422a9626d010922810fc21a43aa822024b86058",
+      "sha256": "376e96aa3ba873423b8f07e1e4b2490ddf9b0d07db97c29ab7bbb8eae8b81031",
       "files": [
         {
           "path": "models/whisper_tiny_encoder/precompiled_qnn_onnx/model.bin",
-          "bytes": 19762832,
-          "sha256": "35f13bdcbbfd019bf622327ba40a5538a280fc7a1fc464dcd78ffe26e640d5f3"
+          "bytes": 19787408,
+          "sha256": "f1a70da3213231e2eaebcb4bfb7a19229625f8f1de502dcf17c4dca7b01c2125"
         },
         {
           "path": "models/whisper_tiny_encoder/precompiled_qnn_onnx/model.onnx",
           "bytes": 1120,
-          "sha256": "3671c54d0b63c50b6501782f8422a9626d010922810fc21a43aa822024b86058"
+          "sha256": "376e96aa3ba873423b8f07e1e4b2490ddf9b0d07db97c29ab7bbb8eae8b81031"
         }
       ],
-      "other_candidates": []
+      "other_candidates": [
+        "jp1nnvn2g"
+      ]
     },
     {
       "name": "whisper_tiny_decoder",
@@ -323,7 +325,9 @@
           "sha256": "3cf50d305f14fc5ca59c11e02a1fa3ab2d6d791e72c612f8395dffc352e1d924"
         }
       ],
-      "other_candidates": []
+      "other_candidates": [
+        "jpxlzvxjp"
+      ]
     },
     {
       "name": "silero_vad",

@@ -4,7 +4,9 @@ AI Hub models: every compile job referenced in benchmarks/raw/jobs_*.json (compi
 entries, compile_job_id and source_model_from_compile_job fields) is looked up. For each
 app model and runtime (onnx and precompiled_qnn_onnx) the newest successful compile job
 is downloaded to models/<name>/<runtime>/, keeping the file names AI Hub uses, because a
-precompiled model refers to its context binary by relative path.
+precompiled model refers to its context binary by relative path. Where
+app.config.RUNTIME.precompiled_compile_jobs pins the precompiled compile job for a model
+(benchmarks/optimization.md, Decision), that job is downloaded instead of the newest.
 
 Silero VAD: the ONNX model from the official snakers4/silero-vad repository at a release
 tag, with version and license recorded.
@@ -27,6 +29,8 @@ import tempfile
 import urllib.request
 import zipfile
 from pathlib import Path
+
+from app.config import RUNTIME
 
 REPO = Path(__file__).resolve().parents[1]
 RAW = REPO / "benchmarks" / "raw"
@@ -126,13 +130,19 @@ def fetch_aihub(client, force: bool, old: dict) -> list[dict]:
             jobs = sorted(candidates.get((app_name, runtime), []), key=lambda j: j.date, reverse=True)
             if not jobs:
                 raise SystemExit(f"No successful {runtime} compile job for {app_name} in the job logs")
+            pinned = RUNTIME.precompiled_compile_jobs.get(app_name) if runtime == "precompiled_qnn_onnx" else None
+            if pinned:
+                if pinned not in [j.job_id for j in jobs]:
+                    raise SystemExit(f"{app_name}: pinned compile job {pinned} is not a successful "
+                                     f"{runtime} compile job in the job logs")
+                jobs.sort(key=lambda j: j.job_id != pinned)
             job = jobs[0]
             dest = MODELS / app_name / runtime
             prev = old.get((app_name, runtime))
             if not force and prev and prev["job_id"] == job.job_id and all(
                     (REPO / f["path"]).exists() and sha256(REPO / f["path"]) == f["sha256"] for f in prev["files"]):
                 print(f"  {app_name:22} {runtime:21} {job.job_id} already present")
-                entries.append(prev)
+                entries.append({**prev, "other_candidates": [j.job_id for j in jobs[1:]]})
                 continue
             target = job.get_target_model()
             with tempfile.TemporaryDirectory() as tmp:

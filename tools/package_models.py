@@ -1,4 +1,4 @@
-"""Package the model files as models-v1.zip, for the GitHub Release asset CI downloads (Task L).
+"""Package the model files as models-v2.zip, for the GitHub Release asset CI downloads (Task L).
 
 Models are not in git. The zip holds models/manifest.json and every file the manifest
 lists, each checked against its sha256 in the manifest first. Paths in the zip match the
@@ -6,13 +6,17 @@ repository (models/<model>/<runtime>/...), so extracting it into the repository 
 into the packaged app's _internal folder, puts every file where app.runtime.runner looks.
 
 The zip is deterministic (sorted entries, fixed timestamps, deflate level 9), so the same
-model files give the same zip. Its sha256 goes to packaging/models-v1.sha256, which
+model files give the same zip. Its sha256 goes to packaging/models-v2.sha256, which
 tools/fetch_models.py checks the downloaded asset against.
 
-The author uploads it once (CI never creates releases):
-  gh release create models-v1 dist/models-v1.zip --title "Models v1" --notes "Model files for CI builds"
+models-v2 holds the whisper_tiny shipping configuration from benchmarks/optimization.md
+(precompiled encoder with float32 I/O, precompiled decoder with float16 I/O). models-v1
+had the float16 precompiled encoder.
 
-Usage: python tools/package_models.py [--out dist/models-v1.zip]
+The author uploads it once (CI never creates releases):
+  gh release create models-v2 dist/models-v2.zip --title "Models v2" --notes "Model files for CI builds"
+
+Usage: python tools/package_models.py [--out dist/models-v2.zip]
 """
 
 from __future__ import annotations
@@ -26,7 +30,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = "models/manifest.json"
-HASH_FILE = ROOT / "packaging" / "models-v1.sha256"
+RELEASE = "models-v2"
+HASH_FILE = ROOT / "packaging" / f"{RELEASE}.sha256"
 FIXED_TIME = (2026, 1, 1, 0, 0, 0)
 
 
@@ -65,14 +70,14 @@ def build_zip(out: Path, root: Path = ROOT) -> str:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", type=Path, default=ROOT / "dist" / "models-v1.zip")
+    ap.add_argument("--out", type=Path, default=ROOT / "dist" / f"{RELEASE}.zip")
     args = ap.parse_args()
     digest = build_zip(args.out)
-    HASH_FILE.write_text(f"{digest}  models-v1.zip\n", encoding="utf-8", newline="\n")
+    HASH_FILE.write_text(f"{digest}  {RELEASE}.zip\n", encoding="utf-8", newline="\n")
     files = manifest_files()
     print(f"Wrote {args.out}: {args.out.stat().st_size} bytes, {len(files) + 1} files, sha256 {digest}")
     print(f"Wrote {HASH_FILE.relative_to(ROOT)}. Commit it, then upload the zip once:")
-    print(f'  gh release create models-v1 "{args.out}" --title "Models v1" --notes "Model files for CI builds"')
+    print(f'  gh release create {RELEASE} "{args.out}" --title "Models v2" --notes "Model files for CI builds"')
     return 0
 
 
