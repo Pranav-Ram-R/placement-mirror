@@ -85,3 +85,4 @@ eval/**/*.avi
 eval/**/*.webm
 eval/**/labels_private*
 eval/**/*_local.json
+eval/**/*_local.txt

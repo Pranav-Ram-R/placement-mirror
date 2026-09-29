@@ -27,8 +27,11 @@ class VisionConfig:
     # Facing camera: the angular distance from the calibrated pose,
     # sqrt(yaw_change^2 + pitch_change^2) in degrees, is below this limit. This is the rule
     # eval/eye_contact/head_pose_test.py evaluates, and the limit is its threshold.
-    # PROVISIONAL until Task C results (eye contact evaluation on a scripted recording).
-    facing_max_angle_deg: float = 15.0
+    # Set from the Task C threshold (15.32 deg, per-segment split, CAMERA against AWAY_LEFT and
+    # DOWN) in eval/eye_contact/results/scripted_20260929_175949_results.json. One speaker,
+    # one scripted recording. The script calibrates with the mean of the first 3 s of CAMERA
+    # frames, the app with the median of its calibration window.
+    facing_max_angle_deg: float = 15.32
 
     # Face detector and landmark tracking. Detector values are the qai_hub_models
     # mediapipe_face app defaults. The detector runs only when there is no track. A track

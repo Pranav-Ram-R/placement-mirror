@@ -7,7 +7,7 @@ Every number is read from a results file, nothing is typed in:
 
 Task B verdict: PASS if the app pipeline's whisper_tiny recall (app_whisper_tiny) is
 >= 0.70 in either condition, else FAIL. A missing fillers or pace results file gives a
-"not run" section and no verdict.
+"not yet evaluated" section with no numbers and no verdict.
 
 Usage: python eval/write_results.py --eye-contact eval/eye_contact/results/<name>_results.json
 """
@@ -43,13 +43,14 @@ def f1(v) -> str:
 
 
 def not_run(title: str, path: Path, why: str) -> list[str]:
-    return [f"## {title}", "", f"Not run: {why} No results file at {path.relative_to(HERE.parent).as_posix()}.", ""]
+    return [f"## {title}", "", f"Not yet evaluated: {why} No results file at "
+            f"{path.relative_to(HERE.parent).as_posix()}.", ""]
 
 
 def fillers(path: Path) -> tuple[list[str], str]:
     if not path.exists():
         return not_run("Filler detection (Task B)", path, "no hand labeled filler counts were made for the "
-                       "recorded answers, so there is nothing to score the transcripts against."), "not run"
+                       "recorded answers yet, so there is nothing to score the transcripts against."), "not yet evaluated"
     r = json.loads(path.read_text(encoding="utf-8"))
     rows = r["summary"]
     clips = rows[0]["clips"] if rows else 0
@@ -94,22 +95,26 @@ def eye_contact(path: Path) -> list[str]:
         lines.append(f"| {s['label']} | {f1(s['start_s'])} | {f1(s['end_s'])} | {s['frames_with_pose']} | "
                      f"{f1(s['yaw_mean'])} | {f1(s['yaw_std'])} | {f1(s['pitch_mean'])} | {f1(s['pitch_std'])} |")
     lines += ["", "Angles in degrees, calibrated to the first CAMERA seconds. " + r["angle_convention"] + ".", "",
-              "| Facing vs away | Frames | Threshold deg | Accuracy | Balanced accuracy |", "|---|---|---|---|---|"]
-    for name, key in (("Train (chosen here)", "train_eval"), ("Held out", "test_eval")):
+              c["definition"] + ".", "",
+              "| Segment | Facing | Frames | Frames with pose | Split at s | Choose frames | Test frames |",
+              "|---|---|---|---|---|---|---|"]
+    for x in c["split"]:
+        lines.append(f"| {x['label']} | {'yes' if x['facing'] else 'no'} | {x['frames']} | {x['frames_with_pose']} | "
+                     f"{f1(x['split_at_s'])} | {x['train_frames']} | {x['test_frames']} |")
+    lines += ["", "| Facing vs not facing | Frames | Facing | Not facing | Threshold deg | Accuracy | "
+              "Balanced accuracy |", "|---|---|---|---|---|---|---|"]
+    for name, key in (("Choose threshold: " + c["train"], "train_eval"), ("Held out: " + c["test"], "test_eval")):
         e = c.get(key)
-        lines.append(f"| {name}: {c['train'] if key == 'train_eval' else c['test']} | "
-                     f"{e['frames'] if e else 'n/a'} | {f1(c['threshold_deg'])} | {f3(e['accuracy']) if e else 'n/a'} | "
-                     f"{f3(e['balanced_accuracy']) if e else 'n/a'} |")
-    lines += ["", c["definition"] + ".", ""]
-    te = c.get("test_eval")
-    lines += [f"The app's limit (VisionConfig.facing_max_angle_deg) stays at {VISION.facing_max_angle_deg:g} deg "
-              f"and stays PROVISIONAL. The {f1(c['threshold_deg'])} deg threshold above is not used: it was chosen "
-              "on the CAMERA and SCREEN segments only, where SCREEN counts as away, and the CAMERA and SCREEN "
-              "ranges overlap in both yaw and pitch (next table)" + (f". Its held-out balanced accuracy is {f3(te['balanced_accuracy'])}" if te else "")
-              + ". Treating SCREEN as facing would change the test definition and was not done here.", ""]
+        lines.append(f"| {name} | {e['frames'] if e else 'n/a'} | {e['tp'] + e['fn'] if e else 'n/a'} | "
+                     f"{e['tn'] + e['fp'] if e else 'n/a'} | {c['threshold_deg']:.2f} | "
+                     f"{f3(e['accuracy']) if e else 'n/a'} | {f3(e['balanced_accuracy']) if e else 'n/a'} |")
+    lines += ["", "Accuracy = (tp + tn) / frames, balanced accuracy = (tp / (tp + fn) + tn / (tn + fp)) / 2 "
+              f"(Derived). The app's limit, VisionConfig.facing_max_angle_deg, is {VISION.facing_max_angle_deg:g} "
+              "deg, set from this threshold.", ""]
     cs = r.get("camera_vs_screen")
     if cs:
-        lines += ["| Camera vs screen | Camera p5 to p95 | Screen p5 to p95 | Intervals overlap | "
+        lines += ["SCREEN frames are not part of the facing test. Their overlap with CAMERA frames:", "",
+                  "| Camera vs screen | Camera p5 to p95 | Screen p5 to p95 | Intervals overlap | "
                   "Best one-threshold balanced accuracy |", "|---|---|---|---|---|"]
         for axis in ("yaw", "pitch"):
             o = cs[axis]
@@ -123,7 +128,7 @@ def eye_contact(path: Path) -> list[str]:
 def pace(path: Path) -> list[str]:
     if not path.exists():
         return not_run("Speaking pace word count", path, "no manual word counts were made for the recorded "
-                       "answers.")
+                       "answers yet.")
     r = json.loads(path.read_text(encoding="utf-8"))
     lines = ["## Speaking pace word count", "",
              f"Source: {r['source']}. The app's own speech path offline (Silero VAD segments, Whisper tiny on "

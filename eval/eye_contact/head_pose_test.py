@@ -14,10 +14,13 @@ The detector runs on every frame. cv2 is used only to read the video file.
 Analysis, using the labels written by record_scripted.py:
 - calibration: mean yaw and pitch over the first --calib-s seconds of CAMERA frames is zero
 - per segment: calibrated yaw and pitch mean and standard deviation
-- facing vs away: facing = CAMERA, away = every other label. A threshold on the angular
-  distance from zero is chosen on frames before --split-s (calibration frames excluded)
-  and tested on frames from --split-s on. The app uses the same rule, and this threshold
-  is its limit (app.config VisionConfig.facing_max_angle_deg)
+- facing vs not facing: facing = CAMERA, not facing = every label except CAMERA and
+  SCREEN (AWAY_LEFT and DOWN in the scripted recording). SCREEN frames are left out of
+  this test and reported separately (next item). Per-segment split: in every segment the
+  frames with a head pose in the first half of the segment's time span choose the
+  threshold on the angular distance from zero (calibration frames excluded), and the
+  frames in the second half test it. The app uses the same rule, and this threshold is
+  its limit (app.config VisionConfig.facing_max_angle_deg)
 - CAMERA vs SCREEN overlap in yaw and pitch
 
 Input: --video and --labels from record_scripted.py, or --recording with an app eval
@@ -29,7 +32,7 @@ is labeled by its timestamp in the video, and frames outside every range are ski
 
 Usage:
   python eval/eye_contact/head_pose_test.py --video <file> --labels <labels.csv>
-                                            [--calib-s 3] [--split-s 30] [--out-dir eval/eye_contact/results]
+                                            [--calib-s 3] [--out-dir eval/eye_contact/results]
   python eval/eye_contact/head_pose_test.py --recording <session id or folder> [--labels <labels.csv>] ...
 """
 
@@ -190,6 +193,9 @@ def read_labels(path: Path):
     return by_time
 
 
+EXCLUDED_LABEL = "SCREEN"  # left out of the facing test, compared with CAMERA separately
+
+
 def segments_of(frames: list[dict]) -> list[dict]:
     segs = []
     for f in frames:
@@ -280,7 +286,6 @@ def main() -> int:
     ap.add_argument("--labels")
     ap.add_argument("--recording", help="an eval recording folder, or its session id under eval/recordings")
     ap.add_argument("--calib-s", type=float, default=3.0)
-    ap.add_argument("--split-s", type=float, default=30.0)
     ap.add_argument("--models-dir", default=str(MODELS_DIR))
     ap.add_argument("--out-dir", default=str(Path(__file__).parent / "results"))
     args = ap.parse_args()
@@ -342,16 +347,29 @@ def main() -> int:
             "pitch_mean": float(p.mean()) if len(v) else None, "pitch_std": float(p.std()) if len(v) else None,
         })
 
-    train = [f for f in valid if f["t"] < args.split_s and f["frame"] not in calib_ids]
-    test = [f for f in valid if f["t"] >= args.split_s]
+    train, test, split = [], [], []
+    for seg in segs:
+        if seg["label"] == EXCLUDED_LABEL:
+            continue
+        mid = (seg["frames"][0]["t"] + seg["frames"][-1]["t"]) / 2
+        a = [f for f in seg["frames"] if "dist" in f and f["t"] < mid and f["frame"] not in calib_ids]
+        b = [f for f in seg["frames"] if "dist" in f and f["t"] >= mid]
+        train += a
+        test += b
+        split.append({"label": seg["label"], "facing": seg["label"] == "CAMERA", "frames": len(seg["frames"]),
+                      "frames_with_pose": sum("dist" in f for f in seg["frames"]), "split_at_s": mid,
+                      "train_frames": len(a), "test_frames": len(b)})
     arr = lambda fs, k: np.array([f[k] for f in fs])  # noqa: E731
     pos = lambda fs: np.array([f["label"] == "CAMERA" for f in fs], dtype=bool)  # noqa: E731
     threshold, train_bacc = best_threshold(arr(train, "dist"), pos(train)) if train else (None, None)
     classifier = {
-        "definition": "facing = CAMERA, away = every other label. Predict facing when the calibrated "
-                      "angular distance sqrt(yaw^2 + pitch^2) is below the threshold",
-        "train": f"frames with t < {args.split_s} s, calibration frames excluded",
-        "test": f"frames with t >= {args.split_s} s",
+        "definition": f"facing = CAMERA, not facing = every label except CAMERA and {EXCLUDED_LABEL}. "
+                      f"{EXCLUDED_LABEL} frames are left out of this test. Predict facing when the calibrated "
+                      "angular distance sqrt(yaw^2 + pitch^2) is below the threshold. Frames without a head pose "
+                      "are left out",
+        "train": "first half of every segment's time span, frames with a head pose, calibration frames excluded",
+        "test": "second half of every segment's time span, frames with a head pose",
+        "split": split,
         "train_labels": sorted({f["label"] for f in train}), "test_labels": sorted({f["label"] for f in test}),
         "threshold_deg": threshold, "train_balanced_accuracy": train_bacc,
         "train_eval": evaluate(arr(train, "dist"), pos(train), threshold) if threshold is not None else None,
@@ -431,9 +449,12 @@ def main() -> int:
         print(f"| {s['label']} | {s['start_s']:.1f} | {s['end_s']:.1f} | {s['frames_with_pose']}/{s['frames']} | "
               f"{fmt(s['yaw_mean'])} | {fmt(s['yaw_std'])} | {fmt(s['pitch_mean'])} | {fmt(s['pitch_std'])} |")
     te = classifier["test_eval"]
-    print(f"\nFacing vs away threshold: {fmt(threshold)} deg, chosen on {classifier['train_labels']}")
+    tr = classifier["train_eval"]
+    print(f"\nFacing vs not facing threshold: {fmt(threshold)} deg, chosen on the first half of every "
+          f"{'/'.join(classifier['train_labels'])} segment ({tr['frames'] if tr else 0} frames)")
     if te:
-        print(f"Held-out ({classifier['test_labels']}): accuracy {fmt(te['accuracy'])}, balanced accuracy "
+        print(f"Held-out second halves ({te['frames']} frames, {te['tp'] + te['fn']} facing, "
+              f"{te['tn'] + te['fp']} not facing): accuracy {fmt(te['accuracy'])}, balanced accuracy "
               f"{fmt(te['balanced_accuracy'])} (Derived, formulas in results JSON)")
     else:
         print("Held-out accuracy: not available (no threshold or no test frames)")

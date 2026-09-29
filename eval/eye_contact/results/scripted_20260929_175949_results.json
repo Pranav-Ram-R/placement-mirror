@@ -1,5 +1,5 @@
 {
-  "created": "2026-09-29T12:37:07+00:00",
+  "created": "2026-09-29T18:10:24+00:00",
   "source": "local x86 CPU",
   "video": "scripted_20260929_175949.mp4",
   "labels": "scripted_20260929_175949_labels.csv",
@@ -88,40 +88,79 @@
     }
   ],
   "classifier": {
-    "definition": "facing = CAMERA, away = every other label. Predict facing when the calibrated angular distance sqrt(yaw^2 + pitch^2) is below the threshold",
-    "train": "frames with t < 30.0 s, calibration frames excluded",
-    "test": "frames with t >= 30.0 s",
+    "definition": "facing = CAMERA, not facing = every label except CAMERA and SCREEN. SCREEN frames are left out of this test. Predict facing when the calibrated angular distance sqrt(yaw^2 + pitch^2) is below the threshold. Frames without a head pose are left out",
+    "train": "first half of every segment's time span, frames with a head pose, calibration frames excluded",
+    "test": "second half of every segment's time span, frames with a head pose",
+    "split": [
+      {
+        "label": "CAMERA",
+        "facing": true,
+        "frames": 439,
+        "frames_with_pose": 438,
+        "split_at_s": 7.4845,
+        "train_frames": 133,
+        "test_frames": 218
+      },
+      {
+        "label": "AWAY_LEFT",
+        "facing": false,
+        "frames": 300,
+        "frames_with_pose": 178,
+        "split_at_s": 34.9845,
+        "train_frames": 107,
+        "test_frames": 71
+      },
+      {
+        "label": "DOWN",
+        "facing": false,
+        "frames": 296,
+        "frames_with_pose": 294,
+        "split_at_s": 44.9925,
+        "train_frames": 144,
+        "test_frames": 150
+      },
+      {
+        "label": "CAMERA",
+        "facing": true,
+        "frames": 299,
+        "frames_with_pose": 299,
+        "split_at_s": 54.9845,
+        "train_frames": 149,
+        "test_frames": 150
+      }
+    ],
     "train_labels": [
+      "AWAY_LEFT",
       "CAMERA",
-      "SCREEN"
+      "DOWN"
     ],
     "test_labels": [
       "AWAY_LEFT",
       "CAMERA",
       "DOWN"
     ],
-    "threshold_deg": 0.4755582996565791,
-    "train_balanced_accuracy": 0.5,
+    "threshold_deg": 15.322479935882201,
+    "train_balanced_accuracy": 0.7659715746941312,
     "train_eval": {
-      "frames": 798,
-      "tp": 0,
-      "tn": 447,
-      "fp": 0,
-      "fn": 351,
-      "accuracy": 0.5601503759398496,
+      "frames": 533,
+      "tp": 250,
+      "tn": 162,
+      "fp": 89,
+      "fn": 32,
+      "accuracy": 0.7729831144465291,
       "accuracy_formula": "Derived: (tp + tn) / frames",
-      "balanced_accuracy": 0.5,
+      "balanced_accuracy": 0.7659715746941312,
       "balanced_accuracy_formula": "Derived: (tp / (tp + fn) + tn / (tn + fp)) / 2"
     },
     "test_eval": {
-      "frames": 771,
-      "tp": 0,
-      "tn": 466,
-      "fp": 6,
-      "fn": 299,
-      "accuracy": 0.6044098573281452,
+      "frames": 589,
+      "tp": 343,
+      "tn": 221,
+      "fp": 0,
+      "fn": 25,
+      "accuracy": 0.9575551782682513,
       "accuracy_formula": "Derived: (tp + tn) / frames",
-      "balanced_accuracy": 0.4936440677966102,
+      "balanced_accuracy": 0.9660326086956521,
       "balanced_accuracy_formula": "Derived: (tp / (tp + fn) + tn / (tn + fp)) / 2"
     }
   },
