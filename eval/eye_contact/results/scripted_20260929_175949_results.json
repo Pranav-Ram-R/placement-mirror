@@ -1,0 +1,160 @@
+{
+  "created": "2026-09-29T12:37:07+00:00",
+  "source": "local x86 CPU",
+  "video": "scripted_20260929_175949.mp4",
+  "labels": "scripted_20260929_175949_labels.csv",
+  "frames_labeled": 1781,
+  "frames_with_face": 1780,
+  "frames_with_pose": 1656,
+  "landmark_count": [
+    468
+  ],
+  "iris_points": false,
+  "landmark_output": "landmarks [1, 468, 3] = (x, y, z) divided by 192. z confirmed from MediaPipePyTorch blazeface_landmark.py (view(-1, 468, 3) / 192, confidence is the separate flag output)",
+  "providers": {
+    "detector": [
+      "CPUExecutionProvider"
+    ],
+    "landmark": [
+      "CPUExecutionProvider"
+    ]
+  },
+  "calibration": {
+    "window_s": [
+      0.0,
+      3.0
+    ],
+    "frames": 87,
+    "zero_deg": {
+      "yaw": 0.13821900271400425,
+      "pitch": -4.911499398284126
+    }
+  },
+  "segments": [
+    {
+      "label": "CAMERA",
+      "start_s": 0.0,
+      "end_s": 14.969,
+      "frames": 439,
+      "frames_with_pose": 438,
+      "yaw_mean": -0.20845913600170585,
+      "yaw_std": 0.4427984219154377,
+      "pitch_mean": -5.764148420221183,
+      "pitch_std": 4.551060239747801
+    },
+    {
+      "label": "SCREEN",
+      "start_s": 15.0,
+      "end_s": 29.953,
+      "frames": 447,
+      "frames_with_pose": 447,
+      "yaw_mean": 0.021196706244648082,
+      "yaw_std": 0.3988041653641774,
+      "pitch_mean": -4.72229448784164,
+      "pitch_std": 1.9688419867583988
+    },
+    {
+      "label": "AWAY_LEFT",
+      "start_s": 30.0,
+      "end_s": 39.969,
+      "frames": 300,
+      "frames_with_pose": 178,
+      "yaw_mean": 34.711721637760874,
+      "yaw_std": 24.413167273215727,
+      "pitch_mean": -11.889791615473094,
+      "pitch_std": 9.681147009901656
+    },
+    {
+      "label": "DOWN",
+      "start_s": 40.016,
+      "end_s": 49.969,
+      "frames": 296,
+      "frames_with_pose": 294,
+      "yaw_mean": 1.8916670484721039,
+      "yaw_std": 16.93822326680071,
+      "pitch_mean": 21.26318873921374,
+      "pitch_std": 19.40182409957678
+    },
+    {
+      "label": "CAMERA",
+      "start_s": 50.0,
+      "end_s": 59.969,
+      "frames": 299,
+      "frames_with_pose": 299,
+      "yaw_mean": -0.86634654044693,
+      "yaw_std": 1.8380373130587815,
+      "pitch_mean": -7.101837557989047,
+      "pitch_std": 15.532446619598021
+    }
+  ],
+  "classifier": {
+    "definition": "facing = CAMERA, away = every other label. Predict facing when the calibrated angular distance sqrt(yaw^2 + pitch^2) is below the threshold",
+    "train": "frames with t < 30.0 s, calibration frames excluded",
+    "test": "frames with t >= 30.0 s",
+    "train_labels": [
+      "CAMERA",
+      "SCREEN"
+    ],
+    "test_labels": [
+      "AWAY_LEFT",
+      "CAMERA",
+      "DOWN"
+    ],
+    "threshold_deg": 0.4755582996565791,
+    "train_balanced_accuracy": 0.5,
+    "train_eval": {
+      "frames": 798,
+      "tp": 0,
+      "tn": 447,
+      "fp": 0,
+      "fn": 351,
+      "accuracy": 0.5601503759398496,
+      "accuracy_formula": "Derived: (tp + tn) / frames",
+      "balanced_accuracy": 0.5,
+      "balanced_accuracy_formula": "Derived: (tp / (tp + fn) + tn / (tn + fp)) / 2"
+    },
+    "test_eval": {
+      "frames": 771,
+      "tp": 0,
+      "tn": 466,
+      "fp": 6,
+      "fn": 299,
+      "accuracy": 0.6044098573281452,
+      "accuracy_formula": "Derived: (tp + tn) / frames",
+      "balanced_accuracy": 0.4936440677966102,
+      "balanced_accuracy_formula": "Derived: (tp / (tp + fn) + tn / (tn + fp)) / 2"
+    }
+  },
+  "camera_vs_screen": {
+    "yaw": {
+      "camera_p5_p95": [
+        -1.68,
+        0.53
+      ],
+      "screen_p5_p95": [
+        -0.66,
+        0.68
+      ],
+      "intervals_overlap": true,
+      "best_single_threshold_balanced_accuracy": 0.6296,
+      "formula": "Derived: best balanced accuracy of one threshold on this axis, CAMERA vs SCREEN frames"
+    },
+    "pitch": {
+      "camera_p5_p95": [
+        -14.96,
+        14.28
+      ],
+      "screen_p5_p95": [
+        -8.24,
+        -1.85
+      ],
+      "intervals_overlap": true,
+      "best_single_threshold_balanced_accuracy": 0.7286,
+      "formula": "Derived: best balanced accuracy of one threshold on this axis, CAMERA vs SCREEN frames"
+    },
+    "overlap_in_yaw_and_pitch": true
+  },
+  "angle_convention": "yaw > 0 nose toward image right, pitch > 0 nose down (app.vision.head_pose)",
+  "timings_file": "scripted_20260929_175949_timings.json",
+  "frame_times_file": "scripted_20260929_175949_frame_times.json"
+}

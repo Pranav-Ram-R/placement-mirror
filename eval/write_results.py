@@ -6,7 +6,8 @@ Every number is read from a results file, nothing is typed in:
 - pace: eval/pace/results/pace_results.json (pace/run_pace_test.py)
 
 Task B verdict: PASS if the app pipeline's whisper_tiny recall (app_whisper_tiny) is
->= 0.70 in either condition, else FAIL.
+>= 0.70 in either condition, else FAIL. A missing fillers or pace results file gives a
+"not run" section and no verdict.
 
 Usage: python eval/write_results.py --eye-contact eval/eye_contact/results/<name>_results.json
 """
@@ -15,9 +16,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parent))
+
+from app.config import VISION  # noqa: E402
+
 RECALL_TO_PASS = 0.70
 NOT_ON_DEVICE = "NPU fp16 transcripts not yet validated on device"
 LIMITS = ("Limitations: one speaker recorded in one room with one laptop microphone and camera, on {n}, "
@@ -36,7 +42,14 @@ def f1(v) -> str:
     return "n/a" if v is None else f"{v:.1f}"
 
 
+def not_run(title: str, path: Path, why: str) -> list[str]:
+    return [f"## {title}", "", f"Not run: {why} No results file at {path.relative_to(HERE.parent).as_posix()}.", ""]
+
+
 def fillers(path: Path) -> tuple[list[str], str]:
+    if not path.exists():
+        return not_run("Filler detection (Task B)", path, "no hand labeled filler counts were made for the "
+                       "recorded answers, so there is nothing to score the transcripts against."), "not run"
     r = json.loads(path.read_text(encoding="utf-8"))
     rows = r["summary"]
     clips = rows[0]["clips"] if rows else 0
@@ -88,6 +101,12 @@ def eye_contact(path: Path) -> list[str]:
                      f"{e['frames'] if e else 'n/a'} | {f1(c['threshold_deg'])} | {f3(e['accuracy']) if e else 'n/a'} | "
                      f"{f3(e['balanced_accuracy']) if e else 'n/a'} |")
     lines += ["", c["definition"] + ".", ""]
+    te = c.get("test_eval")
+    lines += [f"The app's limit (VisionConfig.facing_max_angle_deg) stays at {VISION.facing_max_angle_deg:g} deg "
+              f"and stays PROVISIONAL. The {f1(c['threshold_deg'])} deg threshold above is not used: it was chosen "
+              "on the CAMERA and SCREEN segments only, where SCREEN counts as away, and the CAMERA and SCREEN "
+              "ranges overlap in both yaw and pitch (next table)" + (f". Its held-out balanced accuracy is {f3(te['balanced_accuracy'])}" if te else "")
+              + ". Treating SCREEN as facing would change the test definition and was not done here.", ""]
     cs = r.get("camera_vs_screen")
     if cs:
         lines += ["| Camera vs screen | Camera p5 to p95 | Screen p5 to p95 | Intervals overlap | "
@@ -102,6 +121,9 @@ def eye_contact(path: Path) -> list[str]:
 
 
 def pace(path: Path) -> list[str]:
+    if not path.exists():
+        return not_run("Speaking pace word count", path, "no manual word counts were made for the recorded "
+                       "answers.")
     r = json.loads(path.read_text(encoding="utf-8"))
     lines = ["## Speaking pace word count", "",
              f"Source: {r['source']}. The app's own speech path offline (Silero VAD segments, Whisper tiny on "
@@ -134,6 +156,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    import sys
-
     sys.exit(main())
