@@ -48,7 +48,9 @@ def load_all(raw: Path = RAW) -> list[Measurement]:
     for path in sorted(raw.glob("*.json")):
         if path.name.startswith("jobs_"):
             continue
-        records += [r for r in load_json(path) if isinstance(r, Measurement)]
+        if not isinstance(json.loads(path.read_text(encoding="utf-8")), list):
+            continue  # a data file that is not a record list (day3_decoder_signatures.json, ..._io_bytes.json)
+        records +=[r for r in load_json(path) if isinstance(r, Measurement)]
     return records
 
 
