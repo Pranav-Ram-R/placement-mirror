@@ -1,0 +1,28 @@
+{
+ "conclusion": "success",
+ "created_at": "2026-09-28T18:25:01Z",
+ "head_sha": "b495ad76e9ae223e6bc809eb521dc3fc7eccfc19",
+ "run_id": 36465028091,
+ "url": "https://github.com/Pranav-Ram-R/placement-mirror/actions/runs/36465028091",
+ "workflow": "build-arm64",
+ "jobs": [
+  {
+   "conclusion": "success",
+   "labels": [
+    "windows-11-arm"
+   ],
+   "name": "build"
+  }
+ ],
+ "artifacts": [
+  {
+   "name": "third-party-licenses",
+   "size_in_bytes": 67229
+  },
+  {
+   "name": "PlacementMirror-win-arm64",
+   "size_in_bytes": 365552874
+  }
+ ],
+ "source": "GitHub Actions API: gh api repos/Pranav-Ram-R/placement-mirror/actions/runs/36465028091 (and /jobs, /artifacts)"
+}

@@ -1,0 +1,45 @@
+{
+ "date": "2026-09-30",
+ "machine": "development machine, Windows x64 (the app ran in CPU fallback mode)",
+ "setup": "tools/offline_check.py serve: a Python audit hook logs every network attempt of the app server process and refuses any that is not loopback. Headless Edge with a net log (--log-net-log), every non-loopback host made unreachable (--host-resolver-rules \"MAP * ~NOTFOUND, EXCLUDE 127.0.0.1\", --proxy-server=http://127.0.0.1:9). One replay session (--replay of an eval recording), then the report page and the history page, driven over the DevTools protocol.",
+ "summary_command": "python tools/offline_check.py summarize <python log> --net-log <edge net log>",
+ "python_server": {
+  "network_events": 3,
+  "attempts": [
+   {
+    "event": "socket.bind",
+    "host": "127.0.0.1",
+    "loopback": true,
+    "count": 2
+   },
+   {
+    "event": "socket.connect",
+    "host": "127.0.0.1",
+    "loopback": true,
+    "count": 1
+   }
+  ],
+  "not_loopback": 0
+ },
+ "browser": {
+  "net_log_events": 33769,
+  "requests_started_by_app_pages": 14,
+  "app_page_requests_not_loopback": 0,
+  "browser_own_urls_not_loopback": 29,
+  "browser_own_urls_not_loopback_answered": 0,
+  "browser_own_hosts": [
+   "access-point.cloudmessaging.edge.microsoft.com",
+   "clients2.google.com",
+   "config.edge.skype.com",
+   "edge-consumer-static.azureedge.net",
+   "edge.microsoft.com",
+   "login.live.com",
+   "mss.office.com",
+   "prod.rewardsplatform.microsoft.com",
+   "substrate.office.com",
+   "www.bing.com"
+  ],
+  "browser_connect_attempts_not_loopback": 1
+ },
+ "note": "URLs are reduced to host names here, because the browser's own request URLs carry client identifiers. The app pages made no request off loopback. The non-loopback URLs were started by Edge itself for its own services, and none was answered."
+}

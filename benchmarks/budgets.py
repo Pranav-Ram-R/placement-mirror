@@ -4,7 +4,8 @@
   landmark p50 on the share of frames that run pose (config npu_pose_fps / npu_face_max_fps).
   The face and pose detectors run only when a track is lost, so they are left out.
 - that time as a share of the frame interval, 1 / npu_face_max_fps
-- whisper_tiny encoder p50 on CPU and GPU against the shipping NPU encoder, as ratios
+- whisper_tiny encoder p50 on CPU and GPU against the NPU, as ratios, all three from the same
+  onnx float32 artifact profiled with --compute_unit cpu, gpu and npu
 
 Per-segment ASR cost is left symbolic, encoder p50 + n * decoder p50 for n decoder calls,
 since no decoded token count was measured on a device. It needs no Derived record.
@@ -28,6 +29,7 @@ JOBS = {
     "decoder_npu": "j57e8z9qp",  # whisper_tiny decoder, shipping: precompiled_qnn_onnx float16 I/O
     "encoder_cpu": "j57eeo9rp",  # whisper_tiny encoder, onnx, CPU
     "encoder_gpu": "jp4yye3lp",  # whisper_tiny encoder, onnx, GPU (some ops on CPU)
+    "encoder_onnx_npu": "jpxll0x9p",  # whisper_tiny encoder, onnx float32, NPU (same artifact as the two above)
 }
 
 
@@ -52,12 +54,12 @@ def main() -> None:
                 unit="%", formula=f"vision_npu_steady_state_per_frame / (1e6 / npu_face_max_fps) * 100, frame interval "
                 f"{interval_us:g} us at config npu_face_max_fps {face_fps:g}",
                 inputs=[m["face_landmark"], m["pose_landmark"]]),
-        Derived(name="whisper_tiny_encoder_cpu_over_npu", value=m["encoder_cpu"].value / m["encoder_npu"].value,
-                unit="x", formula=f"p50(encoder onnx CPU, {JOBS['encoder_cpu']}) / p50(encoder shipping NPU, {JOBS['encoder_npu']})",
-                inputs=[m["encoder_cpu"], m["encoder_npu"]]),
-        Derived(name="whisper_tiny_encoder_gpu_over_npu", value=m["encoder_gpu"].value / m["encoder_npu"].value,
-                unit="x", formula=f"p50(encoder onnx GPU, {JOBS['encoder_gpu']}) / p50(encoder shipping NPU, {JOBS['encoder_npu']})",
-                inputs=[m["encoder_gpu"], m["encoder_npu"]]),
+        Derived(name="whisper_tiny_encoder_cpu_over_npu", value=m["encoder_cpu"].value / m["encoder_onnx_npu"].value,
+                unit="x", formula=f"p50(encoder onnx CPU, {JOBS['encoder_cpu']}) / p50(encoder onnx NPU, {JOBS['encoder_onnx_npu']}), same onnx float32 artifact",
+                inputs=[m["encoder_cpu"], m["encoder_onnx_npu"]]),
+        Derived(name="whisper_tiny_encoder_gpu_over_npu", value=m["encoder_gpu"].value / m["encoder_onnx_npu"].value,
+                unit="x", formula=f"p50(encoder onnx GPU, {JOBS['encoder_gpu']}) / p50(encoder onnx NPU, {JOBS['encoder_onnx_npu']}), same onnx float32 artifact",
+                inputs=[m["encoder_gpu"], m["encoder_onnx_npu"]]),
     ]
     save_json(out, OUT)
     for d in out:

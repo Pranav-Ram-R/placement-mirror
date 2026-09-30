@@ -84,9 +84,9 @@
   {
     "kind": "derived",
     "name": "whisper_tiny_encoder_cpu_over_npu",
-    "value": 61.07211761236783,
+    "value": 61.772092032381764,
     "unit": "x",
-    "formula": "p50(encoder onnx CPU, j57eeo9rp) / p50(encoder shipping NPU, jp0mxyj2g)",
+    "formula": "p50(encoder onnx CPU, j57eeo9rp) / p50(encoder onnx NPU, jpxll0x9p), same onnx float32 artifact",
     "inputs": [
       {
         "model": "whisper_tiny_float_encoder",
@@ -107,27 +107,27 @@
       {
         "model": "whisper_tiny_float_encoder",
         "metric": "inference_time_p50",
-        "value": 23739.0,
+        "value": 23470.0,
         "unit": "us",
         "source": "AI Hub hosted Snapdragon X Elite",
-        "runtime": "precompiled_qnn_onnx",
+        "runtime": "onnx",
         "compute_unit": "NPU",
         "precision": "float32",
         "exec_precision": "float16",
         "qnn_version": "2.50.0",
         "ort_version": "1.27.1",
-        "job_id": "jp0mxyj2g",
-        "timestamp": "2026-09-27T17:17:26",
-        "notes": "https://workbench.aihub.qualcomm.com/jobs/jp0mxyj2g/ | requested --compute_unit npu (profile options: --compute_unit npu --qairt_version 2.50 --max_profiler_iterations 100) | ops by compute unit: NPU 294 | runtime from --target_runtime of compile job jp4y2q3qp | precision float32: compile job jp4y2q3qp has no quantize option and target model float I/O is float32 | execution providers added in profile log: CPU, QNN | ort_version from profile job log 'ONNX Runtime version' line | qnn_version from QNN SDK DLL directory in profile job log | exec_precision float16 from profile job log line: [job_id: jp0mxyj2g] [model.onnx] enable_htp_fp16_precision = 1. This should normally be '1' unless the model is fully quantized or on a device that does not support fp16. | p50 = numpy.percentile(samples, 50, method='linear') over the 100 per-iteration times (execution_summary.all_inference_times) in benchmarks/raw/samples/jp0mxyj2g.json"
+        "job_id": "jpxll0x9p",
+        "timestamp": "2026-09-24T23:21:47",
+        "notes": "https://workbench.aihub.qualcomm.com/jobs/jpxll0x9p/ | requested --compute_unit npu (profile options: --compute_unit npu --qairt_version 2.50) | ops by compute unit: NPU 274 | runtime from --target_runtime of compile job j5688od7g | precision float32: compile job j5688od7g has no quantize option and target model float I/O is float32 | execution providers added in profile log: CPU, QNN | ort_version from profile job log 'ONNX Runtime version' line | qnn_version from QNN SDK DLL directory in profile job log | exec_precision float16 from profile job log line: [job_id: jpxll0x9p] [model.onnx] enable_htp_fp16_precision = 1. This should normally be '1' unless the model is fully quantized or on a device that does not support fp16. | p50 = numpy.percentile(samples, 50, method='linear') over the 100 per-iteration times (execution_summary.all_inference_times) in benchmarks/raw/samples/jpxll0x9p.json"
       }
     ]
   },
   {
     "kind": "derived",
     "name": "whisper_tiny_encoder_gpu_over_npu",
-    "value": 16.5254854880155,
+    "value": 16.714891350660416,
     "unit": "x",
-    "formula": "p50(encoder onnx GPU, jp4yye3lp) / p50(encoder shipping NPU, jp0mxyj2g)",
+    "formula": "p50(encoder onnx GPU, jp4yye3lp) / p50(encoder onnx NPU, jpxll0x9p), same onnx float32 artifact",
     "inputs": [
       {
         "model": "whisper_tiny_float_encoder",
@@ -148,18 +148,18 @@
       {
         "model": "whisper_tiny_float_encoder",
         "metric": "inference_time_p50",
-        "value": 23739.0,
+        "value": 23470.0,
         "unit": "us",
         "source": "AI Hub hosted Snapdragon X Elite",
-        "runtime": "precompiled_qnn_onnx",
+        "runtime": "onnx",
         "compute_unit": "NPU",
         "precision": "float32",
         "exec_precision": "float16",
         "qnn_version": "2.50.0",
         "ort_version": "1.27.1",
-        "job_id": "jp0mxyj2g",
-        "timestamp": "2026-09-27T17:17:26",
-        "notes": "https://workbench.aihub.qualcomm.com/jobs/jp0mxyj2g/ | requested --compute_unit npu (profile options: --compute_unit npu --qairt_version 2.50 --max_profiler_iterations 100) | ops by compute unit: NPU 294 | runtime from --target_runtime of compile job jp4y2q3qp | precision float32: compile job jp4y2q3qp has no quantize option and target model float I/O is float32 | execution providers added in profile log: CPU, QNN | ort_version from profile job log 'ONNX Runtime version' line | qnn_version from QNN SDK DLL directory in profile job log | exec_precision float16 from profile job log line: [job_id: jp0mxyj2g] [model.onnx] enable_htp_fp16_precision = 1. This should normally be '1' unless the model is fully quantized or on a device that does not support fp16. | p50 = numpy.percentile(samples, 50, method='linear') over the 100 per-iteration times (execution_summary.all_inference_times) in benchmarks/raw/samples/jp0mxyj2g.json"
+        "job_id": "jpxll0x9p",
+        "timestamp": "2026-09-24T23:21:47",
+        "notes": "https://workbench.aihub.qualcomm.com/jobs/jpxll0x9p/ | requested --compute_unit npu (profile options: --compute_unit npu --qairt_version 2.50) | ops by compute unit: NPU 274 | runtime from --target_runtime of compile job j5688od7g | precision float32: compile job j5688od7g has no quantize option and target model float I/O is float32 | execution providers added in profile log: CPU, QNN | ort_version from profile job log 'ONNX Runtime version' line | qnn_version from QNN SDK DLL directory in profile job log | exec_precision float16 from profile job log line: [job_id: jpxll0x9p] [model.onnx] enable_htp_fp16_precision = 1. This should normally be '1' unless the model is fully quantized or on a device that does not support fp16. | p50 = numpy.percentile(samples, 50, method='linear') over the 100 per-iteration times (execution_summary.all_inference_times) in benchmarks/raw/samples/jpxll0x9p.json"
       }
     ]
   }
